@@ -4,6 +4,7 @@ const variantClasses = {
   outline:
     "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
   ghost: "bg-transparent text-slate-700 hover:bg-slate-100",
+  hero: "bg-white text-sky-700 hover:bg-sky-50",
 };
 const sizeClasses = {
   default: "h-10 px-4 py-2",

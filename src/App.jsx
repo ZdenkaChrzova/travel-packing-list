@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import {
   Archive, ArchiveRestore, BookOpen, Briefcase, CalendarDays, Camera, Car,
   CheckCircle2, ChevronDown, ChevronUp, Circle, CloudSun, Copy, Database,
@@ -235,55 +236,64 @@ export default function PackingListApp() {
   };
   const safeName = value => (value || "balici-seznam").replace(/[^a-zA-Z0-9á-žÁ-Ž_-]+/g, "-");
   const exportExcel = () => {
-    if (!activeTrip) {
-      setExportMessage("Není otevřená žádná cesta k exportu.");
-      return;
-    }
-
-
-    try {
-      const rows = activeTrip.categories.flatMap(category =>
-        category.items.map(item => `
-          <tr>
-            <td>${escapeXml(category.name)}</td>
-            <td>${escapeXml(item.name)}</td>
-            <td>${Number(item.quantity) || 1}</td>
-            <td>${item.packed ? "Ano" : "Ne"}</td>
-          </tr>`)
-      ).join("");
-
-
-      const html = `<!doctype html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <style>
-              table { border-collapse: collapse; font-family: Arial, sans-serif; }
-              th, td { border: 1px solid #cbd5e1; padding: 8px; }
-              th { background: #e0f2fe; }
-              h1, p { font-family: Arial, sans-serif; }
-            </style>
-          </head>
-          <body>
-            <h1>${escapeXml(activeTrip.name)}</h1>
-            <p>Destinace: ${escapeXml(activeTrip.destination || "Neuvedena")} | Termín: ${escapeXml(formatDate(activeTrip.startDate))}${activeTrip.endDate ? ` až ${escapeXml(formatDate(activeTrip.endDate))}` : ""}</p>
-            <table>
-              <thead><tr><th>Kategorie</th><th>Položka</th><th>Počet</th><th>Sbaleno</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </body>
-        </html>`;
-
-
-      const blob = new Blob(["\ufeff", html], { type: "application/vnd.ms-excel;charset=utf-8" });
-      downloadBlob(blob, `${safeName(activeTrip.name)}.xls`);
-      setExportMessage("Export celé cesty byl vytvořen. Soubor najdete ve Stažených souborech.");
-      window.setTimeout(() => setExportMessage(""), 5000);
-    } catch (error) {
-      console.error("Export do Excelu selhal", error);
-      setExportMessage("Export se nepodařil. Zkuste akci zopakovat.");
-    }
-  };
+  if (!activeTrip) {
+    setExportMessage("Není otevřená žádná cesta k exportu.");
+    return;
+  }
+  try {
+    const rows = [
+      ["Travel Packing List"],
+      [],
+      ["Název cesty", activeTrip.name],
+      ["Destinace", activeTrip.destination || "Neuvedena"],
+      ["Datum od", formatDate(activeTrip.startDate)],
+      ["Datum do", formatDate(activeTrip.endDate)],
+      [],
+      ["Kategorie", "Položka", "Počet", "Sbaleno"],
+      ...activeTrip.categories.flatMap(category =>
+        (category.items || []).map(item => [
+          category.name,
+          item.name,
+          Number(item.quantity) || 1,
+          item.packed ? "Ano" : "Ne",
+        ])
+      ),
+    ];
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    worksheet["!cols"] = [
+      { wch: 24 },
+      { wch: 42 },
+      { wch: 10 },
+      { wch: 12 },
+    ];
+    worksheet["!autofilter"] = {
+      ref: `A8:D${Math.max(8, rows.length)}`,
+    };
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Packing List"
+    );
+    XLSX.writeFile(
+      workbook,
+      `${safeName(activeTrip.name)}.xlsx`,
+      {
+        bookType: "xlsx",
+        compression: true,
+      }
+    );
+    setExportMessage(
+      "Soubor XLSX byl vytvořen. Najdete ho ve Stažených souborech."
+    );
+    window.setTimeout(() => setExportMessage(""), 5000);
+  } catch (error) {
+    console.error("Export do XLSX selhal", error);
+    setExportMessage(
+      "Export do XLSX se nepodařil. Zkuste akci zopakovat."
+    );
+  }
+};
   const copyForExcel = async () => {
     if (!activeTrip) {
       setExportMessage("Není otevřená žádná cesta ke kopírování.");

@@ -422,9 +422,9 @@ export default function PackingListApp() {
     onChange={e =>
       updateItem(category.id, item.id, { name: e.target.value })
     }
-    className={`h-9 min-w-0 border-0 bg-transparent px-2 ${
-      item.packed ? "text-slate-400 line-through" : ""
-    }`}
+    className={`h-9 min-w-0 w-full border-0 bg-transparent px-1 ${
+  item.packed ? "text-slate-400 line-through" : ""
+}`}
   />
 </div>
 <div className="w-16 shrink-0">

@@ -4,7 +4,7 @@ import {
   Archive, ArchiveRestore, BookOpen, Briefcase, CalendarDays, Camera, Car,
   CheckCircle2, ChevronDown, ChevronUp, Circle, CloudSun, Copy, Database,
   Download, Dumbbell, FileText, FolderPlus, Gift, HeartPulse, Home, Luggage,
-  MapPin, MoreHorizontal, Plane, Plug, Plus, RotateCcw, Search, Shirt,
+  MapPin, Minus, MoreHorizontal, Plane, Plug, Plus, RotateCcw, Search, Shirt,
   Share2, Sparkles, Trash2, Upload, Utensils, Train, Footprints
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -428,17 +428,61 @@ export default function PackingListApp() {
   />
 </div>
 <div className="w-16 shrink-0">
-  <Input
-    type="number"
-    min="1"
-    value={item.quantity}
-    onChange={e =>
+ <div className="flex shrink-0 items-center overflow-hidden rounded-xl border border-slate-200 bg-white">
+  <button
+    type="button"
+    aria-label={`Snížit počet položky ${item.name}`}
+    onClick={() =>
       updateItem(category.id, item.id, {
-        quantity: Math.max(1, Number(e.target.value) || 1),
+        quantity: Math.max(1, (Number(item.quantity) || 1) - 1),
       })
     }
-    className="h-9 text-center"
+    className="flex h-9 w-9 items-center justify-center text-slate-500 transition hover:bg-slate-100 active:bg-slate-200"
+  >
+    <Minus className="h-4 w-4" />
+  </button>
+
+  <input
+    type="number"
+    min="1"
+    inputMode="numeric"
+    pattern="[0-9]*"
+    value={item.quantity ?? ""}
+    onChange={e => {
+      const value = e.target.value;
+
+      updateItem(category.id, item.id, {
+        quantity:
+          value === ""
+            ? ""
+            : Math.max(1, Math.floor(Number(value) || 1)),
+      });
+    }}
+    onBlur={e =>
+      updateItem(category.id, item.id, {
+        quantity: Math.max(
+          1,
+          Math.floor(Number(e.target.value) || 1)
+        ),
+      })
+    }
+    aria-label={`Počet kusů položky ${item.name}`}
+    className="h-9 w-12 border-x border-slate-200 bg-white text-center text-sm outline-none"
   />
+
+  <button
+    type="button"
+    aria-label={`Zvýšit počet položky ${item.name}`}
+    onClick={() =>
+      updateItem(category.id, item.id, {
+        quantity: (Number(item.quantity) || 1) + 1,
+      })
+    }
+    className="flex h-9 w-9 items-center justify-center text-slate-500 transition hover:bg-slate-100 active:bg-slate-200"
+  >
+    <Plus className="h-4 w-4" />
+  </button>
+</div>
 </div>
 <Button variant="ghost" size="icon" onClick={() => removeItem(category.id, item.id)} className="text-slate-300 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div>) : <p className="rounded-xl border border-dashed p-5 text-center text-sm text-slate-400">Žádné položky</p>}</div><div className="mt-4 grid grid-cols-[minmax(0,1fr)_64px_auto] gap-2"><Input value={newItems[category.id] || ""} onChange={e => setNewItems(v => ({ ...v, [category.id]: e.target.value }))} onKeyDown={e => e.key === "Enter" && addItem(category.id)} placeholder="Nová položka"/><Input type="number" min="1" value={newQuantities[category.id] || 1} onChange={e => setNewQuantities(v => ({ ...v, [category.id]: e.target.value }))}/><Button onClick={() => addItem(category.id)} className="bg-sky-600"><Plus className="h-4 w-4"/><span className="hidden sm:inline">Přidat</span></Button></div></CardContent>}
         </Card>})}</div>

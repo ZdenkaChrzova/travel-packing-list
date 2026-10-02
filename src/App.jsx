@@ -416,7 +416,7 @@ export default function PackingListApp() {
         <div className="grid items-start gap-5 lg:grid-cols-2">{activeTrip.categories.map(category => { const visibleItems = category.items.filter(item => { const matches = !normalizedSearch || item.name.toLocaleLowerCase("cs").includes(normalizedSearch) || category.name.toLocaleLowerCase("cs").includes(normalizedSearch); return matches && (showPacked || !item.packed); }); if (normalizedSearch && !visibleItems.length && !category.name.toLocaleLowerCase("cs").includes(normalizedSearch)) return null; return <Card key={category.id} className="overflow-hidden rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b p-4"><CardTitle className="flex min-w-0 items-center gap-3 text-lg"><button type="button" onClick={() => setEditingIconId(editingIconId === category.id ? null : category.id)} title="Změnit ikonu" className={`rounded-xl p-2.5 transition hover:ring-2 hover:ring-sky-300 ${category.color}`}><CategoryIcon type={category.icon}/></button><span className="truncate">{category.name}</span><span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">{category.items.length}</span></CardTitle><div><Button variant="ghost" size="icon" onClick={() => toggleCategory(category.id)}>{category.collapsed ? <ChevronDown className="h-4 w-4"/> : <ChevronUp className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" onClick={() => removeCategory(category.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div></CardHeader>
           {editingIconId === category.id && <div className="border-b bg-slate-50 p-4"><p className="mb-3 text-sm font-semibold">Změnit ikonu kategorie</p><IconPicker compact value={category.icon} onChange={icon => changeCategoryIcon(category.id, icon)}/></div>}
-          {!category.collapsed && <CardContent className="p-4"><div className="space-y-2">{visibleItems.length ? visibleItems.map(item => <div key={item.id} className={`flex min-w-0 items-center gap-2 rounded-xl border p-2.5 ${item.packed ? "border-emerald-100 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}><button onClick={() => updateItem(category.id, item.id, { packed: !item.packed })}>{item.packed ? <CheckCircle2 className="h-6 w-6 text-emerald-600"/> : <Circle className="h-6 w-6 text-slate-300"/>}</button><div className="min-w-0 flex-1">
+          {!category.collapsed && <CardContent className="p-4"><div className="space-y-2">{visibleItems.length ? visibleItems.map(item => <div key={item.id} className={`flex min-w-0 items-center gap-1 rounded-xl border p-2 ${item.packed ? "border-emerald-100 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}><button onClick={() => updateItem(category.id, item.id, { packed: !item.packed })}>{item.packed ? <CheckCircle2 className="h-6 w-6 text-emerald-600"/> : <Circle className="h-6 w-6 text-slate-300"/>}</button><div className="min-w-0 flex-1">
   <Input
     value={item.name}
     onChange={e =>
@@ -428,16 +428,19 @@ export default function PackingListApp() {
   />
 </div>
 <div className="w-16 shrink-0">
- <div className="flex shrink-0 items-center overflow-hidden rounded-xl border border-slate-200 bg-white">
+<div className="grid shrink-0 grid-cols-[28px_38px_28px] items-center overflow-hidden rounded-lg border border-slate-200 bg-white">
   <button
     type="button"
     aria-label={`Snížit počet položky ${item.name}`}
     onClick={() =>
       updateItem(category.id, item.id, {
-        quantity: Math.max(1, (Number(item.quantity) || 1) - 1),
+        quantity: Math.max(
+          1,
+          (Number(item.quantity) || 1) - 1
+        ),
       })
     }
-    className="flex h-9 w-9 items-center justify-center text-slate-500 transition hover:bg-slate-100 active:bg-slate-200"
+    className="flex h-9 w-7 items-center justify-center text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
   >
     <Minus className="h-4 w-4" />
   </button>
@@ -446,28 +449,30 @@ export default function PackingListApp() {
     type="number"
     min="1"
     inputMode="numeric"
-    pattern="[0-9]*"
     value={item.quantity ?? ""}
-    onChange={e => {
-      const value = e.target.value;
+    onChange={event => {
+      const value = event.target.value;
 
       updateItem(category.id, item.id, {
         quantity:
           value === ""
             ? ""
-            : Math.max(1, Math.floor(Number(value) || 1)),
+            : Math.max(
+                1,
+                Math.floor(Number(value) || 1)
+              ),
       });
     }}
-    onBlur={e =>
+    onBlur={event =>
       updateItem(category.id, item.id, {
         quantity: Math.max(
           1,
-          Math.floor(Number(e.target.value) || 1)
+          Math.floor(Number(event.target.value) || 1)
         ),
       })
     }
     aria-label={`Počet kusů položky ${item.name}`}
-    className="h-9 w-12 border-x border-slate-200 bg-white text-center text-sm outline-none"
+    className="h-9 w-[38px] min-w-0 appearance-none border-x border-slate-200 bg-white p-0 text-center text-sm outline-none"
   />
 
   <button
@@ -478,7 +483,7 @@ export default function PackingListApp() {
         quantity: (Number(item.quantity) || 1) + 1,
       })
     }
-    className="flex h-9 w-9 items-center justify-center text-slate-500 transition hover:bg-slate-100 active:bg-slate-200"
+    className="flex h-9 w-7 items-center justify-center text-slate-600 transition hover:bg-slate-100 active:bg-sky-100 active:text-sky-700"
   >
     <Plus className="h-4 w-4" />
   </button>

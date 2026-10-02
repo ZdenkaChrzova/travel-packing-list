@@ -171,7 +171,39 @@ export default function PackingListApp() {
   const duplicateTrip = trip => { const copy = { ...trip, id: uid(), name: `${trip.name} – kopie`, archived: false, createdAt: new Date().toISOString(), categories: trip.categories.map(c => ({ ...c, id: uid(), items: c.items.map(i => ({ ...i, id: uid(), packed: false })) })) }; setTrips(c => [copy, ...c]); setActiveId(copy.id); setView("list"); };
   const deleteTrip = id => setTrips(current => { const remaining = current.filter(t => t.id !== id); if (activeId === id) setActiveId(remaining[0]?.id || ""); return remaining; });
   const updateItem = (categoryId, itemId, changes) => updateCategories(cs => cs.map(c => c.id === categoryId ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, ...changes } : i) } : c));
-  const addItem = categoryId => { const name = (newItems[categoryId] || "").trim(); if (!name) return; const quantity = Math.max(1, Number(newQuantities[categoryId]) || 1); updateCategories(cs => cs.map(c => c.id === categoryId ? { ...c, items: [...c.items, { id: uid(), name, quantity, packed: false }] } : c)); setNewItems(v => ({ ...v, [categoryId]: "" })); setNewQuantities(v => ({ ...v, [categoryId]: 1 })); };
+  const addItem = categoryId => {
+    const name = (newItems[categoryId] || "").trim();
+    if (!name) return;
+
+    const quantity = Math.max(
+      1,
+      Math.floor(Number(newQuantities[categoryId]) || 1)
+    );
+
+    updateCategories(categories =>
+      categories.map(category =>
+        category.id === categoryId
+          ? {
+              ...category,
+              items: [
+                ...category.items,
+                { id: uid(), name, quantity, packed: false },
+              ],
+            }
+          : category
+      )
+    );
+
+    setNewItems(current => ({
+      ...current,
+      [categoryId]: "",
+    }));
+
+    setNewQuantities(current => ({
+      ...current,
+      [categoryId]: "",
+    }));
+  };
   const removeItem = (categoryId, itemId) => updateCategories(cs => cs.map(c => c.id === categoryId ? { ...c, items: c.items.filter(i => i.id !== itemId) } : c));
   const addCategory = () => {
     const typedName = newCategory.trim();
@@ -403,11 +435,11 @@ export default function PackingListApp() {
 
     <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       {view === "trips" ? <>
-        <section className="mb-6 rounded-3xl bg-gradient-to-r from-sky-600 to-indigo-600 p-6 text-white shadow-xl sm:p-8"><p className="mb-2 text-sm font-semibold uppercase tracking-wider text-sky-100">Vaše cestovní plány</p><h1 className="text-3xl font-bold sm:text-4xl">Kam se chystáte?</h1><p className="mt-2 text-sky-100">Každá cesta má vlastní termín, destinaci a packing list.</p><Button variant="Hero" onClick={createTrip} className="mt-5"><Plus className="mr-2 h-4 w-4" />Zadej New Trip</Button></section>
+        <section className="mb-6 rounded-3xl bg-gradient-to-r from-sky-600 to-indigo-600 p-6 text-white shadow-xl sm:p-8"><p className="mb-2 text-sm font-semibold uppercase tracking-wider text-sky-100">Vaše cestovní plány</p><h1 className="text-3xl font-bold sm:text-4xl">Kam se chystáte?</h1><p className="mt-2 text-sky-100">Každá cesta má vlastní termín, destinaci a packing list.</p><Button variant="hero" onClick={createTrip} className="mt-5"><Plus className="mr-2 h-4 w-4" />Zadej New Trip</Button></section>
         <section className="mb-5 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Hledat cestu nebo destinaci…" className="pl-10"/></div><div className="flex rounded-xl bg-slate-100 p-1"><Button size="sm" variant={!showArchived ? "default" : "ghost"} onClick={() => setShowArchived(false)}>Aktivní</Button><Button size="sm" variant={showArchived ? "default" : "ghost"} onClick={() => setShowArchived(true)}>Archiv</Button></div></section>
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filteredTrips.map(trip => { const p = getStats(trip); return <Card key={trip.id} onClick={() => openTrip(trip.id)} className="cursor-pointer rounded-3xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><CardContent className="p-6"><div className="mb-5 flex justify-between"><span className="rounded-2xl bg-sky-100 p-3 text-sky-700"><TripIcon type={trip.tripIcon || "plane"}/></span><div onClick={e => e.stopPropagation()}><Button variant="ghost" size="icon" onClick={() => duplicateTrip(trip)}><Copy className="h-4 w-4"/></Button><Button variant="ghost" size="icon" onClick={() => updateTrip(trip.id, { archived: !trip.archived })}>{trip.archived ? <ArchiveRestore className="h-4 w-4"/> : <Archive className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" onClick={() => deleteTrip(trip.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div></div><h2 className="truncate text-xl font-bold">{trip.name}</h2><p className="mt-2 flex gap-2 text-sm text-slate-500"><MapPin className="h-4 w-4"/>{trip.destination || "Destinace neuvedena"}</p><p className="mt-1 flex gap-2 text-sm text-slate-500"><CalendarDays className="h-4 w-4"/>{formatDate(trip.startDate)}{trip.endDate ? ` – ${formatDate(trip.endDate)}` : ""}</p><div className="mt-5"><div className="mb-2 flex justify-between text-sm"><span>{p.packed} z {p.total} sbaleno</span><strong>{p.percent} %</strong></div><Progress value={p.percent}/></div></CardContent></Card>})}</div>
       </> : activeTrip ? <>
-        <section className="mb-5 grid gap-4 lg:grid-cols-[1fr_320px]"><Card className="rounded-3xl border-0"><CardContent className="grid gap-4 p-5 sm:grid-cols-2"><div className="sm:col-span-2"><label className="text-xs font-semibold uppercase text-slate-400">Název cesty</label><Input value={activeTrip.name} onChange={e => updateTrip(activeId, { name: e.target.value })}/></div><div className="sm:col-span-2"><div className="mb-2 flex items-center justify-between"><label className="text-xs font-semibold uppercase text-slate-400">Ikona cesty</label><span className="text-xs text-slate-500">{tripIconOptions.find(option => option.value === (activeTrip.tripIcon || "plane"))?.label}</span></div><TripIconPicker value={activeTrip.tripIcon || "plane"} onChange={tripIcon => updateTrip(activeId, { tripIcon })}/></div><div><label className="text-xs font-semibold uppercase text-slate-400">Destinace</label><Input value={activeTrip.destination} onChange={e => updateTrip(activeId, { destination: e.target.value })}/></div><div className="grid grid-cols-2 gap-2"><Input type="date" value={activeTrip.startDate} onChange={e => updateTrip(activeId, { startDate: e.target.value })}/><Input type="date" value={activeTrip.endDate} onChange={e => updateTrip(activeId, { endDate: e.target.value })}/></div></CardContent></Card><Card className="rounded-3xl border-0"><CardContent className="p-5"><div className="mb-3 flex justify-between"><div><p className="text-sm text-slate-500">Průběh balení</p><p className="font-semibold">{stats.packed} z {stats.total} položek</p></div><strong className="text-3xl text-sky-700">{stats.percent} %</strong></div><Progress value={stats.percent}/><div className="mt-4 grid gap-2"><Button variant="outline" size="sm" onClick={resetChecks} className="w-full"><RotateCcw className="mr-2 h-4 w-4"/>Zrušit zaškrtnutí</Button><Button variant="outline" size="sm" onClick={restoreDefaultCategories} className="w-full"><FolderPlus className="mr-2 h-4 w-4"/>Obnovit výchozí kategorie</Button><Button size="sm" onClick={exportExcel} className="w-full bg-emerald-600 hover:bg-emerald-700"><Download className="mr-2 h-4 w-4"/>Exportovat do Excelu</Button><Button variant="outline" size="sm" onClick={copyForExcel} className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50"><Copy className="mr-2 h-4 w-4"/>Kopírovat tabulku do Excelu</Button>{exportMessage && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-2 text-center text-xs font-medium ${exportMessage.startsWith("Export celé") || exportMessage.startsWith("Tabulka celé") ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{exportMessage}</p>}</div></CardContent></Card></section>
+        <section className="mb-5 grid gap-4 lg:grid-cols-[1fr_320px]"><Card className="rounded-3xl border-0"><CardContent className="grid gap-4 p-5 sm:grid-cols-2"><div className="sm:col-span-2"><label className="text-xs font-semibold uppercase text-slate-400">Název cesty</label><Input value={activeTrip.name} onChange={e => updateTrip(activeId, { name: e.target.value })}/></div><div className="sm:col-span-2"><div className="mb-2 flex items-center justify-between"><label className="text-xs font-semibold uppercase text-slate-400">Ikona cesty</label><span className="text-xs text-slate-500">{tripIconOptions.find(option => option.value === (activeTrip.tripIcon || "plane"))?.label}</span></div><TripIconPicker value={activeTrip.tripIcon || "plane"} onChange={tripIcon => updateTrip(activeId, { tripIcon })}/></div><div><label className="text-xs font-semibold uppercase text-slate-400">Destinace</label><Input value={activeTrip.destination} onChange={e => updateTrip(activeId, { destination: e.target.value })}/></div><div className="grid grid-cols-2 gap-2"><Input type="date" value={activeTrip.startDate} onChange={e => updateTrip(activeId, { startDate: e.target.value })}/><Input type="date" value={activeTrip.endDate} onChange={e => updateTrip(activeId, { endDate: e.target.value })}/></div></CardContent></Card><Card className="rounded-3xl border-0"><CardContent className="p-5"><div className="mb-3 flex justify-between"><div><p className="text-sm text-slate-500">Průběh balení</p><p className="font-semibold">{stats.packed} z {stats.total} položek</p></div><strong className="text-3xl text-sky-700">{stats.percent} %</strong></div><Progress value={stats.percent}/><div className="mt-4 grid gap-2"><Button variant="outline" size="sm" onClick={resetChecks} className="w-full"><RotateCcw className="mr-2 h-4 w-4"/>Zrušit zaškrtnutí</Button><Button variant="outline" size="sm" onClick={restoreDefaultCategories} className="w-full"><FolderPlus className="mr-2 h-4 w-4"/>Obnovit výchozí kategorie</Button><Button size="sm" onClick={exportExcel} className="w-full bg-emerald-600 hover:bg-emerald-700"><Download className="mr-2 h-4 w-4"/>Exportovat do Excelu</Button><Button variant="outline" size="sm" onClick={copyForExcel} className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50"><Copy className="mr-2 h-4 w-4"/>Kopírovat tabulku do Excelu</Button>{exportMessage && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-2 text-center text-xs font-medium ${exportMessage.startsWith("Soubor XLSX") || exportMessage.startsWith("Tabulka celé") ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{exportMessage}</p>}</div></CardContent></Card></section>
 
         <section className="mb-5 rounded-2xl bg-white p-4 shadow-sm"><div className="flex flex-col gap-3 lg:flex-row"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Hledat položku nebo kategorii…" className="pl-10"/></div><label className="flex items-center gap-2 text-sm"><Checkbox checked={showPacked} onCheckedChange={v => setShowPacked(Boolean(v))}/>Zobrazit sbalené</label><div className="flex flex-1 gap-2"><Input value={newCategory} onChange={e => setNewCategory(e.target.value)} onKeyDown={e => e.key === "Enter" && addCategory()} placeholder="Nová kategorie"/><Button variant="outline" size="icon" onClick={() => setShowIconPicker(v => !v)} title="Vybrat ikonu"><CategoryIcon type={newCategoryIcon}/></Button><Button variant="outline" onClick={addCategory}><FolderPlus className="mr-2 h-4 w-4"/>Přidat</Button></div></div>
           {showIconPicker && <div className="mt-4 rounded-2xl border bg-slate-50 p-4"><div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold">Vyberte ikonu nové kategorie</p><span className="text-xs text-slate-500">{iconOptions.find(i => i.value === newCategoryIcon)?.label}</span></div><IconPicker value={newCategoryIcon} onChange={setNewCategoryIcon}/></div>}
@@ -416,80 +448,181 @@ export default function PackingListApp() {
         <div className="grid items-start gap-5 lg:grid-cols-2">{activeTrip.categories.map(category => { const visibleItems = category.items.filter(item => { const matches = !normalizedSearch || item.name.toLocaleLowerCase("cs").includes(normalizedSearch) || category.name.toLocaleLowerCase("cs").includes(normalizedSearch); return matches && (showPacked || !item.packed); }); if (normalizedSearch && !visibleItems.length && !category.name.toLocaleLowerCase("cs").includes(normalizedSearch)) return null; return <Card key={category.id} className="overflow-hidden rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b p-4"><CardTitle className="flex min-w-0 items-center gap-3 text-lg"><button type="button" onClick={() => setEditingIconId(editingIconId === category.id ? null : category.id)} title="Změnit ikonu" className={`rounded-xl p-2.5 transition hover:ring-2 hover:ring-sky-300 ${category.color}`}><CategoryIcon type={category.icon}/></button><span className="truncate">{category.name}</span><span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">{category.items.length}</span></CardTitle><div><Button variant="ghost" size="icon" onClick={() => toggleCategory(category.id)}>{category.collapsed ? <ChevronDown className="h-4 w-4"/> : <ChevronUp className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" onClick={() => removeCategory(category.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div></CardHeader>
           {editingIconId === category.id && <div className="border-b bg-slate-50 p-4"><p className="mb-3 text-sm font-semibold">Změnit ikonu kategorie</p><IconPicker compact value={category.icon} onChange={icon => changeCategoryIcon(category.id, icon)}/></div>}
-          {!category.collapsed && <CardContent className="p-4"><div className="space-y-2">{visibleItems.length ? visibleItems.map(item => <div key={item.id} className={`flex min-w-0 items-center gap-1 rounded-xl border p-2 ${item.packed ? "border-emerald-100 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}><button onClick={() => updateItem(category.id, item.id, { packed: !item.packed })}>{item.packed ? <CheckCircle2 className="h-6 w-6 text-emerald-600"/> : <Circle className="h-6 w-6 text-slate-300"/>}</button><div className="min-w-0 flex-1">
-  <Input
-    value={item.name}
-    onChange={e =>
-      updateItem(category.id, item.id, { name: e.target.value })
-    }
-    className={`h-9 min-w-0 w-full border-0 bg-transparent px-1 ${
-  item.packed ? "text-slate-400 line-through" : ""
-}`}
-  />
-</div>
-<div className="w-16 shrink-0">
-<div className="grid shrink-0 grid-cols-[28px_38px_28px] items-center overflow-hidden rounded-lg border border-slate-200 bg-white">
-  <button
-    type="button"
-    aria-label={`Snížit počet položky ${item.name}`}
-    onClick={() =>
-      updateItem(category.id, item.id, {
-        quantity: Math.max(
-          1,
-          (Number(item.quantity) || 1) - 1
-        ),
-      })
-    }
-    className="flex h-9 w-7 items-center justify-center text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
+          {!category.collapsed && <CardContent className="p-4"><div className="space-y-2">{visibleItems.length ? visibleItems.map(item => (
+  <div
+    key={item.id}
+    className={`flex min-w-0 items-center gap-1 rounded-xl border p-2 ${
+      item.packed
+        ? "border-emerald-100 bg-emerald-50"
+        : "border-slate-100 bg-slate-50"
+    }`}
   >
-    <Minus className="h-4 w-4" />
-  </button>
+    <button
+      type="button"
+      onClick={() =>
+        updateItem(category.id, item.id, {
+          packed: !item.packed,
+        })
+      }
+      className="shrink-0"
+      aria-label={
+        item.packed
+          ? `Označit položku ${item.name} jako nesbalenou`
+          : `Označit položku ${item.name} jako sbalenou`
+      }
+    >
+      {item.packed ? (
+        <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+      ) : (
+        <Circle className="h-6 w-6 text-slate-300" />
+      )}
+    </button>
 
-  <input
+    <div className="min-w-0 flex-1">
+      <Input
+        value={item.name}
+        onChange={event =>
+          updateItem(category.id, item.id, {
+            name: event.target.value,
+          })
+        }
+        className={`h-9 min-w-0 w-full border-0 bg-transparent px-1 ${
+          item.packed ? "text-slate-400 line-through" : ""
+        }`}
+      />
+    </div>
+
+    <div className="grid w-[82px] shrink-0 grid-cols-[24px_34px_24px] items-center overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <button
+        type="button"
+        aria-label={`Snížit počet položky ${item.name}`}
+        onClick={() =>
+          updateItem(category.id, item.id, {
+            quantity: Math.max(
+              1,
+              (Number(item.quantity) || 1) - 1
+            ),
+          })
+        }
+        className="flex h-9 w-6 items-center justify-center text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
+      >
+        <Minus className="h-4 w-4" />
+      </button>
+
+      <input
+        type="number"
+        min="1"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={item.quantity ?? ""}
+        onChange={event => {
+          const value = event.target.value;
+          updateItem(category.id, item.id, {
+            quantity:
+              value === ""
+                ? ""
+                : Math.max(1, Math.floor(Number(value) || 1)),
+          });
+        }}
+        onBlur={event =>
+          updateItem(category.id, item.id, {
+            quantity: Math.max(
+              1,
+              Math.floor(Number(event.target.value) || 1)
+            ),
+          })
+        }
+        aria-label={`Počet kusů položky ${item.name}`}
+        className="h-9 w-[34px] min-w-0 appearance-none border-x border-slate-200 bg-white p-0 text-center text-sm outline-none"
+      />
+
+      <button
+        type="button"
+        aria-label={`Zvýšit počet položky ${item.name}`}
+        onClick={() =>
+          updateItem(category.id, item.id, {
+            quantity: (Number(item.quantity) || 1) + 1,
+          })
+        }
+        className="flex h-9 w-6 items-center justify-center text-sky-700 transition hover:bg-sky-50 active:bg-sky-100"
+      >
+        <Plus className="h-4 w-4" />
+      </button>
+    </div>
+
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => removeItem(category.id, item.id)}
+      className="h-9 w-7 shrink-0 p-0 text-slate-300 hover:text-red-600"
+      aria-label={`Odstranit položku ${item.name}`}
+      title="Smazat položku"
+    >
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  </div>
+)) : <p className="rounded-xl border border-dashed p-5 text-center text-sm text-slate-400">Žádné položky</p>}</div>
+<div className="mt-4 grid grid-cols-[minmax(0,1fr)_58px_42px] gap-2 sm:grid-cols-[minmax(0,1fr)_72px_auto]">
+  <Input
+    value={newItems[category.id] ?? ""}
+    onChange={event =>
+      setNewItems(current => ({
+        ...current,
+        [category.id]: event.target.value,
+      }))
+    }
+    onKeyDown={event => {
+      if (event.key === "Enter") addItem(category.id);
+    }}
+    placeholder="Nová položka"
+    className="min-w-0"
+  />
+
+  <Input
     type="number"
     min="1"
     inputMode="numeric"
-    value={item.quantity ?? ""}
+    pattern="[0-9]*"
+    value={newQuantities[category.id] ?? ""}
+    placeholder="1"
     onChange={event => {
       const value = event.target.value;
-
-      updateItem(category.id, item.id, {
-        quantity:
+      setNewQuantities(current => ({
+        ...current,
+        [category.id]:
           value === ""
             ? ""
-            : Math.max(
-                1,
-                Math.floor(Number(value) || 1)
-              ),
-      });
+            : Math.max(1, Math.floor(Number(value) || 1)),
+      }));
     }}
-    onBlur={event =>
-      updateItem(category.id, item.id, {
-        quantity: Math.max(
+    onBlur={event => {
+      const value = event.target.value;
+      if (value === "") return;
+      setNewQuantities(current => ({
+        ...current,
+        [category.id]: Math.max(
           1,
-          Math.floor(Number(event.target.value) || 1)
+          Math.floor(Number(value) || 1)
         ),
-      })
-    }
-    aria-label={`Počet kusů položky ${item.name}`}
-    className="h-9 w-[38px] min-w-0 appearance-none border-x border-slate-200 bg-white p-0 text-center text-sm outline-none"
+      }));
+    }}
+    onKeyDown={event => {
+      if (event.key === "Enter") addItem(category.id);
+    }}
+    aria-label="Počet kusů nové položky"
+    className="min-w-0 px-1 text-center"
   />
 
-  <button
+  <Button
     type="button"
-    aria-label={`Zvýšit počet položky ${item.name}`}
-    onClick={() =>
-      updateItem(category.id, item.id, {
-        quantity: (Number(item.quantity) || 1) + 1,
-      })
-    }
-    className="flex h-9 w-7 items-center justify-center text-slate-600 transition hover:bg-slate-100 active:bg-sky-100 active:text-sky-700"
+    onClick={() => addItem(category.id)}
+    className="min-w-0 bg-sky-600 px-2 hover:bg-sky-700 sm:px-4"
+    aria-label="Přidat novou položku"
   >
-    <Plus className="h-4 w-4" />
-  </button>
-</div>
-</div>
-<Button variant="ghost" size="icon" onClick={() => removeItem(category.id, item.id)} className="text-slate-300 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div>) : <p className="rounded-xl border border-dashed p-5 text-center text-sm text-slate-400">Žádné položky</p>}</div><div className="mt-4 grid grid-cols-[minmax(0,1fr)_64px_auto] gap-2"><Input value={newItems[category.id] || ""} onChange={e => setNewItems(v => ({ ...v, [category.id]: e.target.value }))} onKeyDown={e => e.key === "Enter" && addItem(category.id)} placeholder="Nová položka"/><Input type="number" min="1" value={newQuantities[category.id] || 1} onChange={e => setNewQuantities(v => ({ ...v, [category.id]: e.target.value }))}/><Button onClick={() => addItem(category.id)} className="bg-sky-600"><Plus className="h-4 w-4"/><span className="hidden sm:inline">Přidat</span></Button></div></CardContent>}
+    <Plus className="h-4 w-4 shrink-0" />
+    <span className="hidden sm:inline">Přidat</span>
+  </Button>
+</div></CardContent>}
         </Card>})}</div>
       </> : <div className="rounded-3xl border-2 border-dashed bg-white p-12 text-center"><p className="mb-4 font-semibold">Zatím nemáte žádnou cestu.</p><Button onClick={createTrip}><Plus className="mr-2 h-4 w-4"/>Vytvořit cestu</Button></div>}
     </main>

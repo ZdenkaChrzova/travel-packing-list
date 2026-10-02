@@ -448,10 +448,10 @@ export default function PackingListApp() {
         <div className="grid items-start gap-5 lg:grid-cols-2">{activeTrip.categories.map(category => { const visibleItems = category.items.filter(item => { const matches = !normalizedSearch || item.name.toLocaleLowerCase("cs").includes(normalizedSearch) || category.name.toLocaleLowerCase("cs").includes(normalizedSearch); return matches && (showPacked || !item.packed); }); if (normalizedSearch && !visibleItems.length && !category.name.toLocaleLowerCase("cs").includes(normalizedSearch)) return null; return <Card key={category.id} className="overflow-hidden rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b p-4"><CardTitle className="flex min-w-0 items-center gap-3 text-lg"><button type="button" onClick={() => setEditingIconId(editingIconId === category.id ? null : category.id)} title="Změnit ikonu" className={`rounded-xl p-2.5 transition hover:ring-2 hover:ring-sky-300 ${category.color}`}><CategoryIcon type={category.icon}/></button><span className="truncate">{category.name}</span><span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">{category.items.length}</span></CardTitle><div><Button variant="ghost" size="icon" onClick={() => toggleCategory(category.id)}>{category.collapsed ? <ChevronDown className="h-4 w-4"/> : <ChevronUp className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" onClick={() => removeCategory(category.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div></CardHeader>
           {editingIconId === category.id && <div className="border-b bg-slate-50 p-4"><p className="mb-3 text-sm font-semibold">Změnit ikonu kategorie</p><IconPicker compact value={category.icon} onChange={icon => changeCategoryIcon(category.id, icon)}/></div>}
-          {!category.collapsed && <CardContent className="p-4"><div className="space-y-2">{visibleItems.length ? visibleItems.map(item => (
+          {!category.collapsed && <CardContent className="px-2 py-4 sm:px-3"><div className="space-y-2">{visibleItems.length ? visibleItems.map(item => (
   <div
     key={item.id}
-    className={`flex min-w-0 items-center gap-1 rounded-xl border p-2 ${
+    className={`flex w-full min-w-0 items-center gap-1 rounded-xl border px-1.5 py-2 ${
       item.packed
         ? "border-emerald-100 bg-emerald-50"
         : "border-slate-100 bg-slate-50"

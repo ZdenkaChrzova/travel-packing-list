@@ -175,7 +175,32 @@ export default function PackingListApp() {
   const duplicateTrip = trip => { const copy = { ...trip, id: uid(), name: `${trip.name} – kopie`, archived: false, createdAt: new Date().toISOString(), categories: trip.categories.map(c => ({ ...c, id: uid(), items: c.items.map(i => ({ ...i, id: uid(), packed: false })) })) }; setTrips(c => [copy, ...c]); setActiveId(copy.id); setView("list"); };
   const deleteTrip = id => setTrips(current => { const remaining = current.filter(t => t.id !== id); if (activeId === id) setActiveId(remaining[0]?.id || ""); return remaining; });
   const updateItem = (categoryId, itemId, changes) => updateCategories(cs => cs.map(c => c.id === categoryId ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, ...changes } : i) } : c));
-  const addItem = categoryId => { const name = (newItems[categoryId] || "").trim(); if (!name) return; const quantity = Math.max(1, Number(newQuantities[categoryId]) || 1); updateCategories(cs => cs.map(c => c.id === categoryId ? { ...c, items: [...c.items, { id: uid(), name, quantity, packed: false }] } : c)); setNewItems(v => ({ ...v, [categoryId]: "" })); setNewQuantities(v => ({ ...v, [categoryId]: 1 })); };
+  const addItem = categoryId => {
+    const name = (newItems[categoryId] || "").trim();
+    if (!name) return;
+
+    const quantity = Math.max(
+      1,
+      Math.floor(Number(newQuantities[categoryId]) || 1)
+    );
+
+    updateCategories(categories =>
+      categories.map(category =>
+        category.id === categoryId
+          ? {
+              ...category,
+              items: [
+                ...category.items,
+                { id: uid(), name, quantity, packed: false },
+              ],
+            }
+          : category
+      )
+    );
+
+    setNewItems(current => ({ ...current, [categoryId]: "" }));
+    setNewQuantities(current => ({ ...current, [categoryId]: "" }));
+  };
   const removeItem = (categoryId, itemId) => updateCategories(cs => cs.map(c => c.id === categoryId ? { ...c, items: c.items.filter(i => i.id !== itemId) } : c));
   const addCategory = () => {
     const typedName = newCategory.trim();
@@ -642,80 +667,122 @@ export default function PackingListApp() {
         <div className="grid items-start gap-5 lg:grid-cols-2">{activeTrip.categories.map(category => { const visibleItems = category.items.filter(item => { const matches = !normalizedSearch || item.name.toLocaleLowerCase("cs").includes(normalizedSearch) || category.name.toLocaleLowerCase("cs").includes(normalizedSearch); return matches && (showPacked || !item.packed); }); if (normalizedSearch && !visibleItems.length && !category.name.toLocaleLowerCase("cs").includes(normalizedSearch)) return null; return <Card key={category.id} className="overflow-hidden rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b p-4"><CardTitle className="flex min-w-0 items-center gap-3 text-lg"><button type="button" onClick={() => setEditingIconId(editingIconId === category.id ? null : category.id)} title="Změnit ikonu" className={`rounded-xl p-2.5 transition hover:ring-2 hover:ring-sky-300 ${category.color}`}><CategoryIcon type={category.icon}/></button><span className="truncate">{category.name}</span><span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">{category.items.length}</span></CardTitle><div><Button variant="ghost" size="icon" onClick={() => toggleCategory(category.id)}>{category.collapsed ? <ChevronDown className="h-4 w-4"/> : <ChevronUp className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" onClick={() => removeCategory(category.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div></CardHeader>
           {editingIconId === category.id && <div className="border-b bg-slate-50 p-4"><p className="mb-3 text-sm font-semibold">Změnit ikonu kategorie</p><IconPicker compact value={category.icon} onChange={icon => changeCategoryIcon(category.id, icon)}/></div>}
-          {!category.collapsed && <CardContent className="p-4"><div className="space-y-2">{visibleItems.length ? visibleItems.map(item => <div key={item.id} className={`flex min-w-0 items-center gap-1 rounded-xl border p-2 ${item.packed ? "border-emerald-100 bg-emerald-50" : "border-slate-100 bg-slate-50"}`}><button onClick={() => updateItem(category.id, item.id, { packed: !item.packed })}>{item.packed ? <CheckCircle2 className="h-6 w-6 text-emerald-600"/> : <Circle className="h-6 w-6 text-slate-300"/>}</button><div className="min-w-0 flex-1">
-  <Input
-    value={item.name}
-    onChange={e =>
-      updateItem(category.id, item.id, { name: e.target.value })
-    }
-    className={`h-9 min-w-0 w-full border-0 bg-transparent px-1 ${
-  item.packed ? "text-slate-400 line-through" : ""
-}`}
-  />
-</div>
-<div className="w-16 shrink-0">
-<div className="grid shrink-0 grid-cols-[28px_38px_28px] items-center overflow-hidden rounded-lg border border-slate-200 bg-white">
-  <button
-    type="button"
-    aria-label={`Snížit počet položky ${item.name}`}
-    onClick={() =>
-      updateItem(category.id, item.id, {
-        quantity: Math.max(
-          1,
-          (Number(item.quantity) || 1) - 1
-        ),
-      })
-    }
-    className="flex h-9 w-7 items-center justify-center text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
+          {!category.collapsed && <CardContent className="px-2 py-4 sm:px-3"><div className="space-y-2">{visibleItems.length ? visibleItems.map(item => (
+  <div
+    key={item.id}
+    className={`flex w-full min-w-0 items-center gap-1 rounded-xl border px-1.5 py-2 ${
+      item.packed
+        ? "border-emerald-100 bg-emerald-50"
+        : "border-slate-100 bg-slate-50"
+    }`}
   >
-    <Minus className="h-4 w-4" />
-  </button>
+    <button
+      type="button"
+      onClick={() => updateItem(category.id, item.id, { packed: !item.packed })}
+      className="shrink-0"
+      aria-label={item.packed ? `Označit položku ${item.name} jako nesbalenou` : `Označit položku ${item.name} jako sbalenou`}
+    >
+      {item.packed ? <CheckCircle2 className="h-6 w-6 text-emerald-600" /> : <Circle className="h-6 w-6 text-slate-300" />}
+    </button>
 
-  <input
+    <div className="min-w-0 flex-1">
+      <Input
+        value={item.name}
+        onChange={event => updateItem(category.id, item.id, { name: event.target.value })}
+        className={`h-9 min-w-0 w-full border-0 bg-transparent px-1 ${item.packed ? "text-slate-400 line-through" : ""}`}
+      />
+    </div>
+
+    <div className="grid w-[82px] shrink-0 grid-cols-[24px_34px_24px] items-center overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <button
+        type="button"
+        aria-label={`Snížit počet položky ${item.name}`}
+        onClick={() => updateItem(category.id, item.id, { quantity: Math.max(1, (Number(item.quantity) || 1) - 1) })}
+        className="flex h-9 w-6 items-center justify-center text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
+      >
+        <Minus className="h-4 w-4" />
+      </button>
+
+      <input
+        type="number"
+        min="1"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={item.quantity ?? ""}
+        onChange={event => {
+          const value = event.target.value;
+          updateItem(category.id, item.id, {
+            quantity: value === "" ? "" : Math.max(1, Math.floor(Number(value) || 1)),
+          });
+        }}
+        onBlur={event => updateItem(category.id, item.id, { quantity: Math.max(1, Math.floor(Number(event.target.value) || 1)) })}
+        aria-label={`Počet kusů položky ${item.name}`}
+        className="h-9 w-[34px] min-w-0 appearance-none border-x border-slate-200 bg-white p-0 text-center text-sm outline-none"
+      />
+
+      <button
+        type="button"
+        aria-label={`Zvýšit počet položky ${item.name}`}
+        onClick={() => updateItem(category.id, item.id, { quantity: (Number(item.quantity) || 1) + 1 })}
+        className="flex h-9 w-6 items-center justify-center text-sky-700 transition hover:bg-sky-50 active:bg-sky-100"
+      >
+        <Plus className="h-4 w-4" />
+      </button>
+    </div>
+
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => removeItem(category.id, item.id)}
+      className="h-9 w-7 shrink-0 p-0 text-slate-300 hover:text-red-600"
+      aria-label={`Odstranit položku ${item.name}`}
+      title="Smazat položku"
+    >
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  </div>
+)) : <p className="rounded-xl border border-dashed p-5 text-center text-sm text-slate-400">Žádné položky</p>}</div>
+<div className="mt-4 grid grid-cols-[minmax(0,1fr)_58px_42px] gap-2 sm:grid-cols-[minmax(0,1fr)_72px_auto]">
+  <Input
+    value={newItems[category.id] ?? ""}
+    onChange={event => setNewItems(current => ({ ...current, [category.id]: event.target.value }))}
+    onKeyDown={event => { if (event.key === "Enter") addItem(category.id); }}
+    placeholder="Nová položka"
+    className="min-w-0"
+  />
+  <Input
     type="number"
     min="1"
     inputMode="numeric"
-    value={item.quantity ?? ""}
+    pattern="[0-9]*"
+    value={newQuantities[category.id] ?? ""}
+    placeholder="1"
     onChange={event => {
       const value = event.target.value;
-
-      updateItem(category.id, item.id, {
-        quantity:
-          value === ""
-            ? ""
-            : Math.max(
-                1,
-                Math.floor(Number(value) || 1)
-              ),
-      });
+      setNewQuantities(current => ({
+        ...current,
+        [category.id]: value === "" ? "" : Math.max(1, Math.floor(Number(value) || 1)),
+      }));
     }}
-    onBlur={event =>
-      updateItem(category.id, item.id, {
-        quantity: Math.max(
-          1,
-          Math.floor(Number(event.target.value) || 1)
-        ),
-      })
-    }
-    aria-label={`Počet kusů položky ${item.name}`}
-    className="h-9 w-[38px] min-w-0 appearance-none border-x border-slate-200 bg-white p-0 text-center text-sm outline-none"
+    onBlur={event => {
+      const value = event.target.value;
+      if (value === "") return;
+      setNewQuantities(current => ({ ...current, [category.id]: Math.max(1, Math.floor(Number(value) || 1)) }));
+    }}
+    onKeyDown={event => { if (event.key === "Enter") addItem(category.id); }}
+    aria-label="Počet kusů nové položky"
+    className="min-w-0 px-1 text-center"
   />
-
-  <button
+  <Button
     type="button"
-    aria-label={`Zvýšit počet položky ${item.name}`}
-    onClick={() =>
-      updateItem(category.id, item.id, {
-        quantity: (Number(item.quantity) || 1) + 1,
-      })
-    }
-    className="flex h-9 w-7 items-center justify-center text-slate-600 transition hover:bg-slate-100 active:bg-sky-100 active:text-sky-700"
+    onClick={() => addItem(category.id)}
+    className="min-w-0 bg-sky-600 px-2 hover:bg-sky-700 sm:px-4"
+    aria-label="Přidat novou položku"
   >
-    <Plus className="h-4 w-4" />
-  </button>
-</div>
-</div>
-<Button variant="ghost" size="icon" onClick={() => removeItem(category.id, item.id)} className="text-slate-300 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div>) : <p className="rounded-xl border border-dashed p-5 text-center text-sm text-slate-400">Žádné položky</p>}</div><div className="mt-4 grid grid-cols-[minmax(0,1fr)_64px_auto] gap-2"><Input value={newItems[category.id] || ""} onChange={e => setNewItems(v => ({ ...v, [category.id]: e.target.value }))} onKeyDown={e => e.key === "Enter" && addItem(category.id)} placeholder="Nová položka"/><Input type="number" min="1" value={newQuantities[category.id] || 1} onChange={e => setNewQuantities(v => ({ ...v, [category.id]: e.target.value }))}/><Button onClick={() => addItem(category.id)} className="bg-sky-600"><Plus className="h-4 w-4"/><span className="hidden sm:inline">Přidat</span></Button></div></CardContent>}
+    <Plus className="h-4 w-4 shrink-0" />
+    <span className="hidden sm:inline">Přidat</span>
+  </Button>
+</div></CardContent>}
         </Card>})}</div>
       </> : <div className="rounded-3xl border-2 border-dashed bg-white p-12 text-center"><p className="mb-4 font-semibold">Zatím nemáte žádnou cestu.</p><Button onClick={createTrip}><Plus className="mr-2 h-4 w-4"/>Vytvořit cestu</Button></div>}
     </main>

@@ -439,37 +439,65 @@ export default function PackingListApp() {
       const importedCategories = Array.from(categoryMap.values());
       const importMode = excelImportModeRef.current;
 
-      updateCategories(currentCategories => {
-        if (importMode === "replace") {
-          return importedCategories;
-        }
+      let addedItems = 0;
+      let updatedItems = 0;
+      let addedCategories = 0;
 
-        const result = currentCategories.map(category => ({
+      if (importMode === "replace") {
+        updateCategories(() => importedCategories);
+      } else {
+        const mergedCategories = (activeTrip?.categories || []).map(category => ({
           ...category,
           items: [...(category.items || [])],
         }));
 
         importedCategories.forEach(importedCategory => {
-          const importedName = importedCategory.name
+          const importedCategoryName = importedCategory.name
             .trim()
             .toLocaleLowerCase("cs");
-          const existingCategory = result.find(
+
+          let targetCategory = mergedCategories.find(
             category =>
-              category.name.trim().toLocaleLowerCase("cs") === importedName
+              category.name.trim().toLocaleLowerCase("cs") ===
+              importedCategoryName
           );
 
-          if (existingCategory) {
-            existingCategory.items = [
-              ...existingCategory.items,
-              ...importedCategory.items,
-            ];
-          } else {
-            result.push(importedCategory);
+          if (!targetCategory) {
+            targetCategory = {
+              ...importedCategory,
+              items: [],
+            };
+            mergedCategories.push(targetCategory);
+            addedCategories += 1;
           }
+
+          importedCategory.items.forEach(importedItem => {
+            const importedItemName = importedItem.name
+              .trim()
+              .toLocaleLowerCase("cs");
+
+            const existingItemIndex = targetCategory.items.findIndex(
+              item =>
+                item.name.trim().toLocaleLowerCase("cs") === importedItemName
+            );
+
+            if (existingItemIndex >= 0) {
+              const existingItem = targetCategory.items[existingItemIndex];
+              targetCategory.items[existingItemIndex] = {
+                ...existingItem,
+                quantity: importedItem.quantity,
+                packed: importedItem.packed,
+              };
+              updatedItems += 1;
+            } else {
+              targetCategory.items.push(importedItem);
+              addedItems += 1;
+            }
+          });
         });
 
-        return result;
-      });
+        updateCategories(() => mergedCategories);
+      }
 
       setSearch("");
       setShowPacked(true);
@@ -483,7 +511,7 @@ export default function PackingListApp() {
       setImportMessage(
         importMode === "replace"
           ? `Import dokončen. Seznam byl nahrazen: ${categoryCount} kategorií a ${itemCount} položek.${skippedNote}`
-          : `Import dokončen. Přidáno ${categoryCount} kategorií a ${itemCount} položek.${skippedNote}`
+          : `Import dokončen. Přidáno ${addedCategories} kategorií a ${addedItems} nových položek, aktualizováno ${updatedItems} existujících položek.${skippedNote}`
       );
 
       window.setTimeout(() => setImportMessage(""), 8000);

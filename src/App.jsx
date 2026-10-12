@@ -411,19 +411,88 @@ export default function PackingListApp() {
         throw new Error("V souboru nebyly nalezeny žádné platné položky.");
       }
 
+      const normalizeCategoryName = value =>
+        String(value ?? "")
+          .trim()
+          .toLocaleLowerCase("cs")
+          .replace(/\s+/g, " ");
+
+      const currentCategories = activeTrip?.categories || [];
+      const starterCategories = makeStarterCategories();
+
+      const iconAliases = {
+        oblečení: "shirt",
+        dokumenty: "file",
+        "travel dokumenty": "file",
+        lékárna: "health",
+        kosmetika: "sparkles",
+        sport: "sport",
+        "sportovní vybavení": "sport",
+        elektronika: "plug",
+        foto: "camera",
+        fotografování: "camera",
+        čtení: "book",
+        práce: "work",
+        jídlo: "food",
+        auto: "car",
+        počasí: "weather",
+        dárky: "gift",
+        zavazadlo: "luggage",
+        potápění: "diving",
+        ostatní: "other",
+      };
+
+      const getCategoryPresentation = categoryName => {
+        const normalizedName = normalizeCategoryName(categoryName);
+
+        const currentCategory = currentCategories.find(
+          category => normalizeCategoryName(category.name) === normalizedName
+        );
+
+        if (currentCategory) {
+          return {
+            id: currentCategory.id,
+            icon: currentCategory.icon || "other",
+            color: currentCategory.color || categoryColors[0],
+            collapsed: Boolean(currentCategory.collapsed),
+          };
+        }
+
+        const starterCategory = starterCategories.find(
+          category => normalizeCategoryName(category.name) === normalizedName
+        );
+
+        if (starterCategory) {
+          return {
+            id: uid(),
+            icon: starterCategory.icon,
+            color: starterCategory.color,
+            collapsed: false,
+          };
+        }
+
+        return {
+          id: uid(),
+          icon: iconAliases[normalizedName] || "other",
+          color: categoryColors[categoryMap.size % categoryColors.length],
+          collapsed: false,
+        };
+      };
+
       const categoryMap = new Map();
 
       validRows.forEach(row => {
-        const categoryKey = row.categoryName.toLocaleLowerCase("cs");
+        const categoryKey = normalizeCategoryName(row.categoryName);
 
         if (!categoryMap.has(categoryKey)) {
+          const presentation = getCategoryPresentation(row.categoryName);
+
           categoryMap.set(categoryKey, {
-            id: uid(),
+            id: presentation.id,
             name: row.categoryName,
-            icon: "other",
-            color:
-              categoryColors[categoryMap.size % categoryColors.length],
-            collapsed: false,
+            icon: presentation.icon,
+            color: presentation.color,
+            collapsed: presentation.collapsed,
             items: [],
           });
         }
@@ -452,13 +521,13 @@ export default function PackingListApp() {
         }));
 
         importedCategories.forEach(importedCategory => {
-          const importedCategoryName = importedCategory.name
-            .trim()
-            .toLocaleLowerCase("cs");
+          const importedCategoryName = normalizeCategoryName(
+            importedCategory.name
+          );
 
           let targetCategory = mergedCategories.find(
             category =>
-              category.name.trim().toLocaleLowerCase("cs") ===
+              normalizeCategoryName(category.name) ===
               importedCategoryName
           );
 

@@ -270,13 +270,20 @@ export default function PackingListApp() {
     return;
   }
   try {
+    const toExcelDate = value => {
+      if (!value) return "";
+      const [year, month, day] = String(value).split("-").map(Number);
+      if (!year || !month || !day) return "";
+      return new Date(year, month - 1, day, 12, 0, 0);
+    };
+
     const rows = [
       ["Travel Packing List"],
       [],
       ["Název cesty", activeTrip.name],
       ["Destinace", activeTrip.destination || "Neuvedena"],
-      ["Datum od", formatDate(activeTrip.startDate)],
-      ["Datum do", formatDate(activeTrip.endDate)],
+      ["Datum od", toExcelDate(activeTrip.startDate)],
+      ["Datum do", toExcelDate(activeTrip.endDate)],
       [],
       ["Kategorie", "Položka", "Počet", "Sbaleno"],
       ...activeTrip.categories.flatMap(category =>
@@ -288,7 +295,20 @@ export default function PackingListApp() {
         ])
       ),
     ];
-    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    const worksheet = XLSX.utils.aoa_to_sheet(rows, {
+      cellDates: true,
+      dateNF: "dd.mm.yyyy",
+    });
+
+    if (worksheet.B5 && activeTrip.startDate) {
+      worksheet.B5.t = "d";
+      worksheet.B5.z = "dd.mm.yyyy";
+    }
+
+    if (worksheet.B6 && activeTrip.endDate) {
+      worksheet.B6.t = "d";
+      worksheet.B6.z = "dd.mm.yyyy";
+    }
     worksheet["!cols"] = [
       { wch: 24 },
       { wch: 42 },
@@ -337,7 +357,10 @@ export default function PackingListApp() {
       setImportMessage("Načítám soubor…");
 
       const fileData = await file.arrayBuffer();
-      const workbook = XLSX.read(fileData);
+      const workbook = XLSX.read(fileData, {
+        cellDates: true,
+        cellNF: true,
+      });
       const firstSheetName = workbook.SheetNames[0];
 
       if (!firstSheetName) {
@@ -348,7 +371,8 @@ export default function PackingListApp() {
       const rows = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
         defval: "",
-        raw: false,
+        raw: true,
+        dateNF: "yyyy-mm-dd",
       });
 
       const normalizeHeader = value =>
@@ -362,11 +386,21 @@ export default function PackingListApp() {
         return headers.includes("kategorie") && headers.includes("položka");
       });
 
+      const formatLocalDate = date => {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+      };
+
       const parseExcelDate = value => {
         if (value === null || value === undefined || value === "") return "";
 
         if (value instanceof Date && !Number.isNaN(value.getTime())) {
-          return value.toISOString().slice(0, 10);
+          return formatLocalDate(value);
         }
 
         if (typeof value === "number" && Number.isFinite(value)) {
@@ -390,9 +424,7 @@ export default function PackingListApp() {
         }
 
         const parsedDate = new Date(text);
-        return Number.isNaN(parsedDate.getTime())
-          ? ""
-          : parsedDate.toISOString().slice(0, 10);
+        return formatLocalDate(parsedDate);
       };
 
       const metadataAliases = {

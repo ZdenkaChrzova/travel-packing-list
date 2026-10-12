@@ -362,6 +362,75 @@ export default function PackingListApp() {
         return headers.includes("kategorie") && headers.includes("položka");
       });
 
+      const parseExcelDate = value => {
+        if (value === null || value === undefined || value === "") return "";
+
+        if (value instanceof Date && !Number.isNaN(value.getTime())) {
+          return value.toISOString().slice(0, 10);
+        }
+
+        if (typeof value === "number" && Number.isFinite(value)) {
+          const parsed = XLSX.SSF.parse_date_code(value);
+          if (parsed) {
+            return `${String(parsed.y).padStart(4, "0")}-${String(parsed.m).padStart(2, "0")}-${String(parsed.d).padStart(2, "0")}`;
+          }
+        }
+
+        const text = String(value).trim();
+        if (!text) return "";
+
+        const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (isoMatch) {
+          return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}-${isoMatch[3].padStart(2, "0")}`;
+        }
+
+        const czechMatch = text.match(/^(\d{1,2})[.\/-]\s*(\d{1,2})[.\/-]\s*(\d{4})/);
+        if (czechMatch) {
+          return `${czechMatch[3]}-${czechMatch[2].padStart(2, "0")}-${czechMatch[1].padStart(2, "0")}`;
+        }
+
+        const parsedDate = new Date(text);
+        return Number.isNaN(parsedDate.getTime())
+          ? ""
+          : parsedDate.toISOString().slice(0, 10);
+      };
+
+      const metadataAliases = {
+        "název cesty": "name",
+        "nazev cesty": "name",
+        destinace: "destination",
+        "datum od": "startDate",
+        "datun od": "startDate",
+        od: "startDate",
+        "datum do": "endDate",
+        "datun do": "endDate",
+        do: "endDate",
+      };
+
+      const importedTripDetails = {};
+      const metadataRows = rows.slice(0, Math.max(0, headerRowIndex));
+
+      metadataRows.forEach((row, rowIndex) => {
+        for (let columnIndex = 0; columnIndex < row.length; columnIndex += 1) {
+          const label = normalizeHeader(row[columnIndex]);
+          const field = metadataAliases[label];
+          if (!field) continue;
+
+          let rawValue = row[columnIndex + 1];
+
+          if (rawValue === undefined || rawValue === null || rawValue === "") {
+            const nextRow = metadataRows[rowIndex + 1];
+            rawValue = nextRow?.[columnIndex] ?? nextRow?.[columnIndex + 1] ?? "";
+          }
+
+          if (field === "startDate" || field === "endDate") {
+            importedTripDetails[field] = parseExcelDate(rawValue);
+          } else {
+            importedTripDetails[field] = String(rawValue ?? "").trim();
+          }
+        }
+      });
+
       if (headerRowIndex === -1) {
         throw new Error(
           'V souboru nebyly nalezeny sloupce "Kategorie" a "Položka".'
@@ -568,6 +637,25 @@ export default function PackingListApp() {
         updateCategories(() => mergedCategories);
       }
 
+      const tripChanges = {};
+
+      if (importedTripDetails.name) {
+        tripChanges.name = importedTripDetails.name;
+      }
+      if (importedTripDetails.destination) {
+        tripChanges.destination = importedTripDetails.destination;
+      }
+      if (importedTripDetails.startDate) {
+        tripChanges.startDate = importedTripDetails.startDate;
+      }
+      if (importedTripDetails.endDate) {
+        tripChanges.endDate = importedTripDetails.endDate;
+      }
+
+      if (Object.keys(tripChanges).length > 0) {
+        updateTrip(activeId, tripChanges);
+      }
+
       setSearch("");
       setShowPacked(true);
 
@@ -576,11 +664,15 @@ export default function PackingListApp() {
       const skippedNote = skippedRows
         ? ` Přeskočeno neplatných řádků: ${skippedRows}.`
         : "";
+      const detailsCount = Object.keys(tripChanges).length;
+      const detailsNote = detailsCount
+        ? ` Aktualizovány také údaje cesty (${detailsCount}).`
+        : "";
 
       setImportMessage(
         importMode === "replace"
-          ? `Import dokončen. Seznam byl nahrazen: ${categoryCount} kategorií a ${itemCount} položek.${skippedNote}`
-          : `Import dokončen. Přidáno ${addedCategories} kategorií a ${addedItems} nových položek, aktualizováno ${updatedItems} existujících položek.${skippedNote}`
+          ? `Import dokončen. Seznam byl nahrazen: ${categoryCount} kategorií a ${itemCount} položek.${skippedNote}${detailsNote}`
+          : `Import dokončen. Přidáno ${addedCategories} kategorií a ${addedItems} nových položek, aktualizováno ${updatedItems} existujících položek.${skippedNote}${detailsNote}`
       );
 
       window.setTimeout(() => setImportMessage(""), 8000);

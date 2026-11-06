@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "date": "2026-11-06",
+  "title": "První oficiální verze s aktualizacemi",
+  "changes": [
+    "Číslo verze je nově viditelné v horní části úvodní obrazovky.",
+    "Aplikace automaticky kontroluje nové verze publikované na GitHub Pages.",
+    "Přidán přehled změn, historie verzí a řízená aktualizace.",
+    "Uložené cesty, kategorie, položky a stavy sbalení zůstávají zachované."
+  ],
+  "history": [
+    {
+      "version": "1.0.0",
+      "date": "2026-11-06",
+      "changes": [
+        "Viditelné číslo verze v záhlaví.",
+        "Automatická kontrola aktualizací.",
+        "Dialog s novinkami a historií verzí.",
+        "Bezpečná aktualizace bez mazání dat."
+      ]
+    }
+  ]
+}

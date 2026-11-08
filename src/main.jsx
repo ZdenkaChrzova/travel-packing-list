@@ -11,7 +11,7 @@ if ('serviceWorker' in navigator) {
     window.location.reload()
   })
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js?v=1.2.0`, { updateViaCache: 'none' })
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js?v=1.2.1`, { updateViaCache: 'none' })
       .then(registration => registration.update())
       .catch(error => console.info('Service worker se nepodařilo zaregistrovat:', error.message))
   })

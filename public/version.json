@@ -1,14 +1,22 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "date": "2026-11-08",
-  "title": "Šablony cest",
+  "title": "Přesunutí karty počasí",
   "changes": [
-    "Přidána samostatná záložka Šablony.",
-    "Cestu lze označit jako šablonu a přesunout ji mimo aktivní cesty.",
-    "Šablonu lze vrátit mezi aktivní cesty.",
-    "Duplikováním šablony vznikne nová běžná aktivní cesta s nezaškrtnutými položkami."
+    "Karta počasí byla přesunuta přímo pod údaje o cestě.",
+    "Na mobilu se zobrazuje pořadí: údaje cesty, počasí a průběh balení.",
+    "Na větších obrazovkách zůstává průběh balení v pravém sloupci."
   ],
   "history": [
+    {
+      "version": "1.2.1",
+      "date": "2026-11-08",
+      "changes": [
+        "Karta počasí byla přesunuta přímo pod údaje o cestě.",
+        "Na mobilu se zobrazuje pořadí: údaje cesty, počasí a průběh balení.",
+        "Na větších obrazovkách zůstává průběh balení v pravém sloupci."
+      ]
+    },
     {
       "version": "1.2.0",
       "date": "2026-11-08",

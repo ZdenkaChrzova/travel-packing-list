@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import {
-  Archive, ArchiveRestore, BookOpen, Briefcase, CalendarDays, Camera, Car,
+  Archive, ArchiveRestore, BookOpen, Bookmark, BookmarkCheck, Briefcase, CalendarDays, Camera, Car,
   CheckCircle2, ChevronDown, ChevronUp, Circle, CloudSun, Copy, Database,
   Download, Dumbbell, FileText, FolderPlus, Gift, HeartPulse, Home, Luggage,
   MapPin, Minus, MoreHorizontal, Plane, Plug, Plus, RotateCcw, Search, Shirt,
@@ -55,7 +55,7 @@ function ShipIcon({ className = "h-5 w-5" }) {
 
 
 const STORAGE_KEY = "packing-trips-stable-v2-icons";
-const APP_VERSION = "1.1.1";
+const APP_VERSION = "1.2.0";
 const UPDATE_SEEN_KEY = "travel-packing-list-update-seen";
 const BASE_URL = import.meta.env.BASE_URL;
 const compareVersions = (a, b) => { const aa=String(a||"0").split(/[.-]/).map(Number), bb=String(b||"0").split(/[.-]/).map(Number); for(let i=0;i<Math.max(aa.length,bb.length);i+=1){const d=(aa[i]||0)-(bb[i]||0);if(d)return d>0?1:-1;}return 0; };
@@ -127,6 +127,7 @@ const makeTrip = (name = "New Trip") => ({
   endDate: "",
   tripIcon: "plane",
   archived: false,
+  isTemplate: false,
   createdAt: new Date().toISOString(),
   categories: makeStarterCategories(),
 });
@@ -156,7 +157,7 @@ export default function PackingListApp() {
   const initialTripRef = useRef(null); if (!initialTripRef.current) initialTripRef.current = makeTrip("Moje první cesta");
   const [trips, setTrips] = useState([initialTripRef.current]);
   const [activeId, setActiveId] = useState(initialTripRef.current.id);
-  const [view, setView] = useState("trips"); const [showArchived, setShowArchived] = useState(false);
+  const [view, setView] = useState("trips"); const [tripSection, setTripSection] = useState("active");
   const [search, setSearch] = useState(""); const [showPacked, setShowPacked] = useState(true);
   const [newItems, setNewItems] = useState({}); const [newQuantities, setNewQuantities] = useState({});
   const [newCategory, setNewCategory] = useState(""); const [newCategoryIcon, setNewCategoryIcon] = useState("other");
@@ -225,7 +226,7 @@ export default function PackingListApp() {
   const updateCategories = updater => setTrips(current => current.map(t => t.id === activeId ? { ...t, categories: updater(t.categories || []) } : t));
   const createTrip = () => { const trip = makeTrip(); setTrips(c => [trip, ...c]); setActiveId(trip.id); setView("list"); setSearch(""); };
   const openTrip = id => { setActiveId(id); setView("list"); setSearch(""); };
-  const duplicateTrip = trip => { const copy = { ...trip, id: uid(), name: `${trip.name} – kopie`, archived: false, createdAt: new Date().toISOString(), categories: trip.categories.map(c => ({ ...c, id: uid(), items: c.items.map(i => ({ ...i, id: uid(), packed: false })) })) }; setTrips(c => [copy, ...c]); setActiveId(copy.id); setView("list"); };
+  const duplicateTrip = trip => { const copy = { ...trip, id: uid(), name: `${trip.name} – kopie`, archived: false, isTemplate: false, createdAt: new Date().toISOString(), categories: trip.categories.map(c => ({ ...c, id: uid(), items: c.items.map(i => ({ ...i, id: uid(), packed: false })) })) }; setTrips(c => [copy, ...c]); setActiveId(copy.id); setTripSection("active"); setView("list"); };
   const deleteTrip = id => setTrips(current => { const remaining = current.filter(t => t.id !== id); if (activeId === id) setActiveId(remaining[0]?.id || ""); return remaining; });
   const updateItem = (categoryId, itemId, changes) => updateCategories(cs => cs.map(c => c.id === categoryId ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, ...changes } : i) } : c));
   const addItem = categoryId => {
@@ -871,7 +872,14 @@ export default function PackingListApp() {
     }
   };
   const restore = event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const data = JSON.parse(String(reader.result)); if (!Array.isArray(data.trips)) throw new Error("Neplatná záloha"); setTrips(data.trips); setActiveId(data.trips[0]?.id || ""); setView("trips"); } catch (e) { console.error("Obnovení zálohy selhalo", e); } finally { event.target.value = ""; } }; reader.readAsText(file); };
-  const filteredTrips = trips.filter(t => t.archived === showArchived && (!normalizedSearch || `${t.name} ${t.destination}`.toLocaleLowerCase("cs").includes(normalizedSearch)));
+  const filteredTrips = trips.filter(t => {
+    const matchesSection = tripSection === "templates"
+      ? Boolean(t.isTemplate)
+      : tripSection === "archive"
+        ? Boolean(t.archived) && !t.isTemplate
+        : !t.archived && !t.isTemplate;
+    return matchesSection && (!normalizedSearch || `${t.name} ${t.destination}`.toLocaleLowerCase("cs").includes(normalizedSearch));
+  });
 
   return <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 pb-24 text-slate-900 md:pb-8">
     <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur"><div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
@@ -891,8 +899,8 @@ export default function PackingListApp() {
       {view === "trips" ? <>
         {updateInfo && compareVersions(updateInfo.version, APP_VERSION) > 0 && <section className="mb-4 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 p-4 text-white shadow-lg sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold">Je dostupná verze {updateInfo.version}</p><p className="text-sm text-emerald-50">{updateInfo.changes?.[0] || "Novinky a opravy jsou připravené k instalaci."}</p></div><Button type="button" variant="secondary" onClick={() => setUpdateDialog({ info:updateInfo, available:true })}>Zobrazit změny</Button></section>}
         <section className="mb-6 rounded-3xl bg-gradient-to-r from-sky-600 to-indigo-600 p-6 text-white shadow-xl sm:p-8"><p className="mb-2 text-sm font-semibold uppercase tracking-wider text-sky-100">Vaše cestovní plány</p><h1 className="text-3xl font-bold sm:text-4xl">Kam se chystáte?</h1><p className="mt-2 text-sky-100">Každá cesta má vlastní termín, destinaci a packing list.</p><Button variant="hero" onClick={createTrip} className="mt-5"><Plus className="mr-2 h-4 w-4" />Zadej New Trip</Button></section>
-        <section className="mb-5 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Hledat cestu nebo destinaci…" className="pl-10"/></div><div className="flex rounded-xl bg-slate-100 p-1"><Button size="sm" variant={!showArchived ? "default" : "ghost"} onClick={() => setShowArchived(false)}>Aktivní</Button><Button size="sm" variant={showArchived ? "default" : "ghost"} onClick={() => setShowArchived(true)}>Archiv</Button></div></section>
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filteredTrips.map(trip => { const p = getStats(trip); return <Card key={trip.id} onClick={() => openTrip(trip.id)} className="cursor-pointer rounded-3xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><CardContent className="p-6"><div className="mb-5 flex justify-between"><span className="rounded-2xl bg-sky-100 p-3 text-sky-700"><TripIcon type={trip.tripIcon || "plane"}/></span><div onClick={e => e.stopPropagation()}><Button variant="ghost" size="icon" onClick={() => duplicateTrip(trip)}><Copy className="h-4 w-4"/></Button><Button variant="ghost" size="icon" onClick={() => updateTrip(trip.id, { archived: !trip.archived })}>{trip.archived ? <ArchiveRestore className="h-4 w-4"/> : <Archive className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" onClick={() => deleteTrip(trip.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div></div><h2 className="truncate text-xl font-bold">{trip.name}</h2><p className="mt-2 flex gap-2 text-sm text-slate-500"><MapPin className="h-4 w-4"/>{trip.destination || "Destinace neuvedena"}</p><p className="mt-1 flex gap-2 text-sm text-slate-500"><CalendarDays className="h-4 w-4"/>{formatDate(trip.startDate)}{trip.endDate ? ` – ${formatDate(trip.endDate)}` : ""}</p><div className="mt-5"><div className="mb-2 flex justify-between text-sm"><span>{p.packed} z {p.total} sbaleno</span><strong>{p.percent} %</strong></div><Progress value={p.percent}/></div></CardContent></Card>})}</div>
+        <section className="mb-5 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Hledat cestu nebo destinaci…" className="pl-10"/></div><div className="flex flex-wrap rounded-xl bg-slate-100 p-1"><Button size="sm" variant={tripSection === "active" ? "default" : "ghost"} onClick={() => setTripSection("active")}>Aktivní</Button><Button size="sm" variant={tripSection === "templates" ? "default" : "ghost"} onClick={() => setTripSection("templates")}><Bookmark className="mr-1 h-4 w-4"/>Šablony</Button><Button size="sm" variant={tripSection === "archive" ? "default" : "ghost"} onClick={() => setTripSection("archive")}>Archiv</Button></div></section>
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filteredTrips.map(trip => { const p = getStats(trip); return <Card key={trip.id} onClick={() => openTrip(trip.id)} className="cursor-pointer rounded-3xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><CardContent className="p-6"><div className="mb-5 flex justify-between"><span className="rounded-2xl bg-sky-100 p-3 text-sky-700"><TripIcon type={trip.tripIcon || "plane"}/></span><div onClick={e => e.stopPropagation()}><Button variant="ghost" size="icon" onClick={() => duplicateTrip(trip)}><Copy className="h-4 w-4"/></Button><Button variant="ghost" size="icon" title={trip.isTemplate ? "Přesunout mezi aktivní cesty" : "Označit jako šablonu"} onClick={() => updateTrip(trip.id, { isTemplate: !trip.isTemplate, archived: false })}>{trip.isTemplate ? <BookmarkCheck className="h-4 w-4 text-sky-700"/> : <Bookmark className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" title={trip.archived ? "Obnovit z archivu" : "Archivovat"} onClick={() => updateTrip(trip.id, { archived: !trip.archived, isTemplate: false })}>{trip.archived ? <ArchiveRestore className="h-4 w-4"/> : <Archive className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" onClick={() => deleteTrip(trip.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div></div><div className="flex items-center gap-2"><h2 className="truncate text-xl font-bold">{trip.name}</h2>{trip.isTemplate && <span className="rounded-full bg-sky-100 px-2 py-1 text-[10px] font-bold uppercase text-sky-800">Šablona</span>}</div><p className="mt-2 flex gap-2 text-sm text-slate-500"><MapPin className="h-4 w-4"/>{trip.destination || "Destinace neuvedena"}</p><p className="mt-1 flex gap-2 text-sm text-slate-500"><CalendarDays className="h-4 w-4"/>{formatDate(trip.startDate)}{trip.endDate ? ` – ${formatDate(trip.endDate)}` : ""}</p><div className="mt-5"><div className="mb-2 flex justify-between text-sm"><span>{p.packed} z {p.total} sbaleno</span><strong>{p.percent} %</strong></div><Progress value={p.percent}/></div></CardContent></Card>})}</div>
       </> : activeTrip ? <>
         <section className="mb-5 grid gap-4 lg:grid-cols-[1fr_320px]"><Card className="rounded-3xl border-0"><CardContent className="grid gap-4 p-5 sm:grid-cols-2"><div className="sm:col-span-2"><label className="text-xs font-semibold uppercase text-slate-400">Název cesty</label><Input value={activeTrip.name} onChange={e => updateTrip(activeId, { name: e.target.value })}/></div><div className="sm:col-span-2"><div className="mb-2 flex items-center justify-between"><label className="text-xs font-semibold uppercase text-slate-400">Ikona cesty</label><span className="text-xs text-slate-500">{tripIconOptions.find(option => option.value === (activeTrip.tripIcon || "plane"))?.label}</span></div><TripIconPicker value={activeTrip.tripIcon || "plane"} onChange={tripIcon => updateTrip(activeId, { tripIcon })}/></div><div><label className="text-xs font-semibold uppercase text-slate-400">Destinace</label><DestinationPicker trip={activeTrip} onUpdate={changes => updateTrip(activeId, changes)} /></div><div className="grid grid-cols-2 gap-2"><Input type="date" value={activeTrip.startDate} onChange={e => updateTrip(activeId, { startDate: e.target.value })}/><Input type="date" value={activeTrip.endDate} onChange={e => updateTrip(activeId, { endDate: e.target.value })}/></div></CardContent></Card><Card className="rounded-3xl border-0"><CardContent className="p-5"><div className="mb-3 flex justify-between"><div><p className="text-sm text-slate-500">Průběh balení</p><p className="font-semibold">{stats.packed} z {stats.total} položek</p></div><strong className="text-3xl text-sky-700">{stats.percent} %</strong></div><Progress value={stats.percent}/><div className="mt-4 grid gap-2"><Button variant="outline" size="sm" onClick={resetChecks} className="w-full"><RotateCcw className="mr-2 h-4 w-4"/>Zrušit zaškrtnutí</Button><Button variant="outline" size="sm" onClick={restoreDefaultCategories} className="w-full"><FolderPlus className="mr-2 h-4 w-4"/>Obnovit výchozí kategorie</Button><Button size="sm" onClick={exportExcel} className="w-full bg-emerald-600 hover:bg-emerald-700"><Download className="mr-2 h-4 w-4"/>Exportovat do Excelu</Button>
 <div className="grid grid-cols-2 gap-2">

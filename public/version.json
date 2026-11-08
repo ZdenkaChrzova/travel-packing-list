@@ -1,14 +1,24 @@
 {
-  "version": "1.1.1",
+  "version": "1.2.0",
   "date": "2026-11-08",
-  "title": "Oprava dialogu aktualizace",
+  "title": "Šablony cest",
   "changes": [
-    "Opraveno zablokování dialogu při aktualizaci aplikace.",
-    "Dialog aktualizace lze vždy zavřít křížkem, tlačítkem Připomenout později nebo klepnutím mimo dialog.",
-    "Aktualizace má časový limit a při neúspěchu znovu odblokuje ovládací prvky.",
-    "Sjednocena verze aplikace, service workeru, cache a historie verzí."
+    "Přidána samostatná záložka Šablony.",
+    "Cestu lze označit jako šablonu a přesunout ji mimo aktivní cesty.",
+    "Šablonu lze vrátit mezi aktivní cesty.",
+    "Duplikováním šablony vznikne nová běžná aktivní cesta s nezaškrtnutými položkami."
   ],
   "history": [
+    {
+      "version": "1.2.0",
+      "date": "2026-11-08",
+      "changes": [
+        "Přidána samostatná záložka Šablony.",
+        "Cestu lze označit jako šablonu a přesunout ji mimo aktivní cesty.",
+        "Šablonu lze vrátit mezi aktivní cesty.",
+        "Duplikováním šablony vznikne nová běžná aktivní cesta s nezaškrtnutými položkami."
+      ]
+    },
     {
       "version": "1.1.1",
       "date": "2026-11-08",

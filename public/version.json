@@ -1,14 +1,40 @@
 {
-  "version": "1.0.1",
-  "date": "2026-11-06",
-  "title": "Historie verzí a copyright",
+  "version": "1.1.0",
+  "date": "2026-11-08",
+  "title": "Dynamická destinace a počasí",
   "changes": [
-    "Na úvodní obrazovku bylo přidáno viditelné tlačítko Co je nového.",
-    "Historie verzí nyní zobrazuje podrobný popis změn ve verzích 1.0.1 a 1.0.0.",
-    "Do spodní části úvodní obrazovky byl přidán copyright © 2026 Zdeňka Chrzová.",
-    "Copyright a číslo aplikace jsou zobrazené také v přehledu verzí."
+    "Přidán interaktivní výběr destinace s našeptáváním měst a oblastí.",
+    "Vybraná destinace ukládá zemi, souřadnice a časové pásmo.",
+    "Přidána dynamická karta aktuálního počasí a sedmidenní předpovědi.",
+    "Počasí zobrazuje teplotu, pocitovou teplotu, srážky, vítr a UV index.",
+    "Přidána doporučení pro balení podle předpovědi a offline zobrazení posledních uložených dat.",
+    "Původní textové destinace a starší uložené cesty zůstávají kompatibilní."
   ],
   "history": [
+    {
+      "version": "1.1.0",
+      "date": "2026-11-08",
+      "changes": [
+        "Přidán interaktivní výběr destinace s našeptáváním měst a oblastí.",
+        "Vybraná destinace ukládá zemi, souřadnice a časové pásmo.",
+        "Přidána dynamická karta aktuálního počasí a sedmidenní předpovědi.",
+        "Počasí zobrazuje teplotu, pocitovou teplotu, srážky, vítr a UV index.",
+        "Přidána doporučení pro balení podle předpovědi a offline zobrazení posledních uložených dat.",
+        "Původní textové destinace a starší uložené cesty zůstávají kompatibilní."
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-11-08",
+      "changes": [
+        "Přidán interaktivní výběr destinace s našeptáváním měst a oblastí.",
+        "Vybraná destinace ukládá zemi, souřadnice a časové pásmo.",
+        "Přidána dynamická karta aktuálního počasí a sedmidenní předpovědi.",
+        "Počasí zobrazuje teplotu, pocitovou teplotu, srážky, vítr a UV index.",
+        "Přidána doporučení pro balení podle předpovědi a offline zobrazení posledních uložených dat.",
+        "Původní textové destinace a starší uložené cesty zůstávají kompatibilní."
+      ]
+    },
     {
       "version": "1.0.1",
       "date": "2026-11-06",

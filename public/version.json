@@ -1,38 +1,22 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "date": "2026-11-08",
-  "title": "Dynamická destinace a počasí",
+  "title": "Oprava dialogu aktualizace",
   "changes": [
-    "Přidán interaktivní výběr destinace s našeptáváním měst a oblastí.",
-    "Vybraná destinace ukládá zemi, souřadnice a časové pásmo.",
-    "Přidána dynamická karta aktuálního počasí a sedmidenní předpovědi.",
-    "Počasí zobrazuje teplotu, pocitovou teplotu, srážky, vítr a UV index.",
-    "Přidána doporučení pro balení podle předpovědi a offline zobrazení posledních uložených dat.",
-    "Původní textové destinace a starší uložené cesty zůstávají kompatibilní."
+    "Opraveno zablokování dialogu při aktualizaci aplikace.",
+    "Dialog aktualizace lze vždy zavřít křížkem, tlačítkem Připomenout později nebo klepnutím mimo dialog.",
+    "Aktualizace má časový limit a při neúspěchu znovu odblokuje ovládací prvky.",
+    "Sjednocena verze aplikace, service workeru, cache a historie verzí."
   ],
   "history": [
     {
-      "version": "1.1.0",
+      "version": "1.1.1",
       "date": "2026-11-08",
       "changes": [
-        "Přidán interaktivní výběr destinace s našeptáváním měst a oblastí.",
-        "Vybraná destinace ukládá zemi, souřadnice a časové pásmo.",
-        "Přidána dynamická karta aktuálního počasí a sedmidenní předpovědi.",
-        "Počasí zobrazuje teplotu, pocitovou teplotu, srážky, vítr a UV index.",
-        "Přidána doporučení pro balení podle předpovědi a offline zobrazení posledních uložených dat.",
-        "Původní textové destinace a starší uložené cesty zůstávají kompatibilní."
-      ]
-    },
-    {
-      "version": "1.1.0",
-      "date": "2026-11-08",
-      "changes": [
-        "Přidán interaktivní výběr destinace s našeptáváním měst a oblastí.",
-        "Vybraná destinace ukládá zemi, souřadnice a časové pásmo.",
-        "Přidána dynamická karta aktuálního počasí a sedmidenní předpovědi.",
-        "Počasí zobrazuje teplotu, pocitovou teplotu, srážky, vítr a UV index.",
-        "Přidána doporučení pro balení podle předpovědi a offline zobrazení posledních uložených dat.",
-        "Původní textové destinace a starší uložené cesty zůstávají kompatibilní."
+        "Opraveno zablokování dialogu při aktualizaci aplikace.",
+        "Dialog aktualizace lze vždy zavřít křížkem, tlačítkem Připomenout později nebo klepnutím mimo dialog.",
+        "Aktualizace má časový limit a při neúspěchu znovu odblokuje ovládací prvky.",
+        "Sjednocena verze aplikace, service workeru, cache a historie verzí."
       ]
     },
     {

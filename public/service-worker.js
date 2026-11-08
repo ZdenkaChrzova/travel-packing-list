@@ -1,4 +1,4 @@
-const CACHE = "travel-packing-list-v1.1.0";
+const CACHE = "travel-packing-list-v1.1.1";
 const BASE = "/travel-packing-list/";
 const ASSETS = [BASE, `${BASE}index.html`, `${BASE}manifest.webmanifest`, `${BASE}version.json`, `${BASE}icon-192.png`, `${BASE}icon-512.png`, `${BASE}icon-maskable-512.png`];
 self.addEventListener("install", event => { event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS))); });

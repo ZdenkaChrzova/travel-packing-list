@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { DestinationPicker } from "@/components/DestinationPicker";
+import { WeatherCard } from "@/components/WeatherCard";
 
 function DiverIcon({ className = "h-5 w-5" }) {
   return (
@@ -53,7 +55,7 @@ function ShipIcon({ className = "h-5 w-5" }) {
 
 
 const STORAGE_KEY = "packing-trips-stable-v2-icons";
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.1.1";
 const UPDATE_SEEN_KEY = "travel-packing-list-update-seen";
 const BASE_URL = import.meta.env.BASE_URL;
 const compareVersions = (a, b) => { const aa=String(a||"0").split(/[.-]/).map(Number), bb=String(b||"0").split(/[.-]/).map(Number); for(let i=0;i<Math.max(aa.length,bb.length);i+=1){const d=(aa[i]||0)-(bb[i]||0);if(d)return d>0?1:-1;}return 0; };
@@ -119,6 +121,8 @@ const makeTrip = (name = "New Trip") => ({
   id: uid(),
   name,
   destination: "",
+  destinationLocation: null,
+  weatherCache: null,
   startDate: today(),
   endDate: "",
   tripIcon: "plane",
@@ -189,15 +193,28 @@ export default function PackingListApp() {
       .catch(error => console.info("Kontrola aktualizace není dostupná:", error.message));
     return () => { active = false; };
   }, []);
-  const closeUpdateDialog = markSeen => { if (markSeen && updateDialog?.info?.version) localStorage.setItem(UPDATE_SEEN_KEY, updateDialog.info.version); setUpdateDialog(null); setUpdateError(""); };
+  const closeUpdateDialog = (markSeen = true) => { if (markSeen && updateDialog?.info?.version) localStorage.setItem(UPDATE_SEEN_KEY, updateDialog.info.version); setUpdating(false); setUpdateDialog(null); setUpdateError(""); };
   const installUpdate = async () => {
     if (!updateDialog?.available) { closeUpdateDialog(true); return; }
     setUpdating(true); setUpdateError("");
     try {
       const registration = await navigator.serviceWorker?.getRegistration(`${BASE_URL}`);
-      if (registration) { await registration.update(); if (registration.waiting) { registration.waiting.postMessage({ type: "SKIP_WAITING" }); return; } }
-      const url = new URL(window.location.href); url.searchParams.set("updated", Date.now()); window.location.replace(url.toString());
-    } catch (error) { console.error(error); setUpdateError("Aktualizaci se nepodařilo dokončit. Zkontrolujte připojení a zkuste to znovu."); setUpdating(false); }
+      if (registration) {
+        await Promise.race([
+          registration.update(),
+          new Promise((_, reject) => window.setTimeout(() => reject(new Error("Aktualizace vypršela")), 12000)),
+        ]);
+        if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+      localStorage.setItem(UPDATE_SEEN_KEY, updateDialog.info.version);
+      const url = new URL(window.location.href);
+      url.searchParams.set("updated", Date.now());
+      window.location.replace(url.toString());
+    } catch (error) {
+      console.error(error);
+      setUpdateError("Aktualizaci se nepodařilo dokončit. Dialog můžete zavřít a zkusit ji později.");
+      setUpdating(false);
+    }
   };
 
 
@@ -712,6 +729,8 @@ export default function PackingListApp() {
       }
       if (importedTripDetails.destination) {
         tripChanges.destination = importedTripDetails.destination;
+        tripChanges.destinationLocation = null;
+        tripChanges.weatherCache = null;
       }
       if (importedTripDetails.startDate) {
         tripChanges.startDate = importedTripDetails.startDate;
@@ -875,7 +894,7 @@ export default function PackingListApp() {
         <section className="mb-5 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Hledat cestu nebo destinaci…" className="pl-10"/></div><div className="flex rounded-xl bg-slate-100 p-1"><Button size="sm" variant={!showArchived ? "default" : "ghost"} onClick={() => setShowArchived(false)}>Aktivní</Button><Button size="sm" variant={showArchived ? "default" : "ghost"} onClick={() => setShowArchived(true)}>Archiv</Button></div></section>
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filteredTrips.map(trip => { const p = getStats(trip); return <Card key={trip.id} onClick={() => openTrip(trip.id)} className="cursor-pointer rounded-3xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><CardContent className="p-6"><div className="mb-5 flex justify-between"><span className="rounded-2xl bg-sky-100 p-3 text-sky-700"><TripIcon type={trip.tripIcon || "plane"}/></span><div onClick={e => e.stopPropagation()}><Button variant="ghost" size="icon" onClick={() => duplicateTrip(trip)}><Copy className="h-4 w-4"/></Button><Button variant="ghost" size="icon" onClick={() => updateTrip(trip.id, { archived: !trip.archived })}>{trip.archived ? <ArchiveRestore className="h-4 w-4"/> : <Archive className="h-4 w-4"/>}</Button><Button variant="ghost" size="icon" onClick={() => deleteTrip(trip.id)} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4"/></Button></div></div><h2 className="truncate text-xl font-bold">{trip.name}</h2><p className="mt-2 flex gap-2 text-sm text-slate-500"><MapPin className="h-4 w-4"/>{trip.destination || "Destinace neuvedena"}</p><p className="mt-1 flex gap-2 text-sm text-slate-500"><CalendarDays className="h-4 w-4"/>{formatDate(trip.startDate)}{trip.endDate ? ` – ${formatDate(trip.endDate)}` : ""}</p><div className="mt-5"><div className="mb-2 flex justify-between text-sm"><span>{p.packed} z {p.total} sbaleno</span><strong>{p.percent} %</strong></div><Progress value={p.percent}/></div></CardContent></Card>})}</div>
       </> : activeTrip ? <>
-        <section className="mb-5 grid gap-4 lg:grid-cols-[1fr_320px]"><Card className="rounded-3xl border-0"><CardContent className="grid gap-4 p-5 sm:grid-cols-2"><div className="sm:col-span-2"><label className="text-xs font-semibold uppercase text-slate-400">Název cesty</label><Input value={activeTrip.name} onChange={e => updateTrip(activeId, { name: e.target.value })}/></div><div className="sm:col-span-2"><div className="mb-2 flex items-center justify-between"><label className="text-xs font-semibold uppercase text-slate-400">Ikona cesty</label><span className="text-xs text-slate-500">{tripIconOptions.find(option => option.value === (activeTrip.tripIcon || "plane"))?.label}</span></div><TripIconPicker value={activeTrip.tripIcon || "plane"} onChange={tripIcon => updateTrip(activeId, { tripIcon })}/></div><div><label className="text-xs font-semibold uppercase text-slate-400">Destinace</label><Input value={activeTrip.destination} onChange={e => updateTrip(activeId, { destination: e.target.value })}/></div><div className="grid grid-cols-2 gap-2"><Input type="date" value={activeTrip.startDate} onChange={e => updateTrip(activeId, { startDate: e.target.value })}/><Input type="date" value={activeTrip.endDate} onChange={e => updateTrip(activeId, { endDate: e.target.value })}/></div></CardContent></Card><Card className="rounded-3xl border-0"><CardContent className="p-5"><div className="mb-3 flex justify-between"><div><p className="text-sm text-slate-500">Průběh balení</p><p className="font-semibold">{stats.packed} z {stats.total} položek</p></div><strong className="text-3xl text-sky-700">{stats.percent} %</strong></div><Progress value={stats.percent}/><div className="mt-4 grid gap-2"><Button variant="outline" size="sm" onClick={resetChecks} className="w-full"><RotateCcw className="mr-2 h-4 w-4"/>Zrušit zaškrtnutí</Button><Button variant="outline" size="sm" onClick={restoreDefaultCategories} className="w-full"><FolderPlus className="mr-2 h-4 w-4"/>Obnovit výchozí kategorie</Button><Button size="sm" onClick={exportExcel} className="w-full bg-emerald-600 hover:bg-emerald-700"><Download className="mr-2 h-4 w-4"/>Exportovat do Excelu</Button>
+        <section className="mb-5 grid gap-4 lg:grid-cols-[1fr_320px]"><Card className="rounded-3xl border-0"><CardContent className="grid gap-4 p-5 sm:grid-cols-2"><div className="sm:col-span-2"><label className="text-xs font-semibold uppercase text-slate-400">Název cesty</label><Input value={activeTrip.name} onChange={e => updateTrip(activeId, { name: e.target.value })}/></div><div className="sm:col-span-2"><div className="mb-2 flex items-center justify-between"><label className="text-xs font-semibold uppercase text-slate-400">Ikona cesty</label><span className="text-xs text-slate-500">{tripIconOptions.find(option => option.value === (activeTrip.tripIcon || "plane"))?.label}</span></div><TripIconPicker value={activeTrip.tripIcon || "plane"} onChange={tripIcon => updateTrip(activeId, { tripIcon })}/></div><div><label className="text-xs font-semibold uppercase text-slate-400">Destinace</label><DestinationPicker trip={activeTrip} onUpdate={changes => updateTrip(activeId, changes)} /></div><div className="grid grid-cols-2 gap-2"><Input type="date" value={activeTrip.startDate} onChange={e => updateTrip(activeId, { startDate: e.target.value })}/><Input type="date" value={activeTrip.endDate} onChange={e => updateTrip(activeId, { endDate: e.target.value })}/></div></CardContent></Card><Card className="rounded-3xl border-0"><CardContent className="p-5"><div className="mb-3 flex justify-between"><div><p className="text-sm text-slate-500">Průběh balení</p><p className="font-semibold">{stats.packed} z {stats.total} položek</p></div><strong className="text-3xl text-sky-700">{stats.percent} %</strong></div><Progress value={stats.percent}/><div className="mt-4 grid gap-2"><Button variant="outline" size="sm" onClick={resetChecks} className="w-full"><RotateCcw className="mr-2 h-4 w-4"/>Zrušit zaškrtnutí</Button><Button variant="outline" size="sm" onClick={restoreDefaultCategories} className="w-full"><FolderPlus className="mr-2 h-4 w-4"/>Obnovit výchozí kategorie</Button><Button size="sm" onClick={exportExcel} className="w-full bg-emerald-600 hover:bg-emerald-700"><Download className="mr-2 h-4 w-4"/>Exportovat do Excelu</Button>
 <div className="grid grid-cols-2 gap-2">
   <Button
     type="button"
@@ -918,6 +937,7 @@ export default function PackingListApp() {
   </p>
 )}</div></CardContent></Card></section>
 
+        <section className="mb-5"><WeatherCard trip={activeTrip} onUpdate={changes => updateTrip(activeId, changes)} /></section>
         <section className="mb-5 rounded-2xl bg-white p-4 shadow-sm"><div className="flex flex-col gap-3 lg:flex-row"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Hledat položku nebo kategorii…" className="pl-10"/></div><label className="flex items-center gap-2 text-sm"><Checkbox checked={showPacked} onCheckedChange={v => setShowPacked(Boolean(v))}/>Zobrazit sbalené</label><div className="flex flex-1 gap-2"><Input value={newCategory} onChange={e => setNewCategory(e.target.value)} onKeyDown={e => e.key === "Enter" && addCategory()} placeholder="Nová kategorie"/><Button variant="outline" size="icon" onClick={() => setShowIconPicker(v => !v)} title="Vybrat ikonu"><CategoryIcon type={newCategoryIcon}/></Button><Button variant="outline" onClick={addCategory}><FolderPlus className="mr-2 h-4 w-4"/>Přidat</Button></div></div>
           {showIconPicker && <div className="mt-4 rounded-2xl border bg-slate-50 p-4"><div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold">Vyberte ikonu nové kategorie</p><span className="text-xs text-slate-500">{iconOptions.find(i => i.value === newCategoryIcon)?.label}</span></div><IconPicker value={newCategoryIcon} onChange={setNewCategoryIcon}/></div>}
         </section>
@@ -1045,7 +1065,7 @@ export default function PackingListApp() {
       </> : <div className="rounded-3xl border-2 border-dashed bg-white p-12 text-center"><p className="mb-4 font-semibold">Zatím nemáte žádnou cestu.</p><Button onClick={createTrip}><Plus className="mr-2 h-4 w-4"/>Vytvořit cestu</Button></div>}
     </main>
     {view === "trips" && <footer className="mx-auto mb-4 max-w-7xl px-4 pb-24 text-center text-xs text-slate-500 sm:px-6 md:pb-4 lg:px-8"><button type="button" onClick={() => setShowReleaseHistory(true)} className="font-semibold text-sky-700 hover:underline">Co je nového · verze {APP_VERSION}</button><p className="mt-1">© 2026 Zdeňka Chrzová</p></footer>}
-    {updateDialog && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="presentation" onClick={event => { if(event.target===event.currentTarget) closeUpdateDialog(false); }}><section role="dialog" aria-modal="true" aria-labelledby="update-title" className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="update-title" className="text-xl font-bold text-slate-900">{updateDialog.available ? `Nová verze ${updateDialog.info.version}` : `Co je nového ve verzi ${updateDialog.info.version}`}</h2><p className="mt-1 text-sm text-slate-500">{updateDialog.info.date ? `Vydáno ${releaseDate(updateDialog.info.date)}` : ""}{updateDialog.available ? ` · Nainstalována verze ${APP_VERSION}` : ""}</p></div><button type="button" onClick={() => closeUpdateDialog(false)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Zavřít"><X className="h-5 w-5"/></button></div><ul className="mt-5 list-disc space-y-2 pl-5 text-sm text-slate-700">{(updateDialog.info.changes || ["Drobné opravy a vylepšení."]).map(change => <li key={change}>{change}</li>)}</ul>{updateError && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{updateError}</p>}<div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">{updateDialog.available && <Button type="button" variant="outline" onClick={() => closeUpdateDialog(false)}>Připomenout později</Button>}<Button type="button" onClick={installUpdate} disabled={updating} className="bg-sky-600 hover:bg-sky-700">{updating ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin"/>Aktualizuji…</> : updateDialog.available ? "Aktualizovat nyní" : "Rozumím"}</Button></div></section></div>}
+    {updateDialog && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="presentation" onClick={event => { if(event.target===event.currentTarget) closeUpdateDialog(false); }}><section role="dialog" aria-modal="true" aria-labelledby="update-title" className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="update-title" className="text-xl font-bold text-slate-900">{updateDialog.available ? `Nová verze ${updateDialog.info.version}` : `Co je nového ve verzi ${updateDialog.info.version}`}</h2><p className="mt-1 text-sm text-slate-500">{updateDialog.info.date ? `Vydáno ${releaseDate(updateDialog.info.date)}` : ""}{updateDialog.available ? ` · Nainstalována verze ${APP_VERSION}` : ""}</p></div><button type="button" onClick={() => closeUpdateDialog(true)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Zavřít"><X className="h-5 w-5"/></button></div><ul className="mt-5 list-disc space-y-2 pl-5 text-sm text-slate-700">{(updateDialog.info.changes || ["Drobné opravy a vylepšení."]).map(change => <li key={change}>{change}</li>)}</ul>{updateError && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{updateError}</p>}<div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">{updateDialog.available && <Button type="button" variant="outline" onClick={() => closeUpdateDialog(true)}>Připomenout později</Button>}<Button type="button" onClick={installUpdate} disabled={updating} className="bg-sky-600 hover:bg-sky-700">{updating ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin"/>Aktualizuji…</> : updateDialog.available ? "Aktualizovat nyní" : "Rozumím"}</Button></div></section></div>}
     {showReleaseHistory && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="presentation" onClick={event => { if(event.target===event.currentTarget) setShowReleaseHistory(false); }}><section role="dialog" aria-modal="true" aria-labelledby="history-title" className="max-h-[90vh] w-full max-w-xl overflow-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="history-title" className="text-xl font-bold">Co je nového</h2><p className="text-sm text-slate-500">Nainstalovaná verze {APP_VERSION}</p></div><button type="button" onClick={() => setShowReleaseHistory(false)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Zavřít"><X className="h-5 w-5"/></button></div><div className="mt-5 space-y-3">{(updateInfo?.history || [{version:APP_VERSION,date:"2026-11-06",changes:["První oficiální verze aplikace."]}]).map(release => <article key={release.version} className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><h3 className="font-bold text-sky-800">Verze {release.version}{release.version===APP_VERSION && <span className="ml-2 rounded-full bg-emerald-100 px-2 py-1 text-[10px] text-emerald-800">Nainstalováno</span>}</h3><p className="mt-1 text-xs text-slate-500">{releaseDate(release.date)}</p><ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-700">{(release.changes||[]).map(change => <li key={change}>{change}</li>)}</ul></article>)}</div><div className="mt-6 border-t border-slate-200 pt-4 text-center text-xs text-slate-500"><p>© 2026 Zdeňka Chrzová</p><p className="mt-1">Travel Packing List · verze {APP_VERSION}</p></div></section></div>}
     <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-white p-2 shadow-2xl md:hidden"><button onClick={() => setView("trips")} className="flex flex-col items-center gap-1 p-2 text-xs"><Home className="h-5 w-5"/>Cesty</button><button onClick={createTrip} className="flex flex-col items-center gap-1 p-2 text-xs"><Plus className="h-5 w-5"/>Nová</button><button onClick={backup} className="flex flex-col items-center gap-1 p-2 text-xs"><Database className="h-5 w-5"/>Záloha</button><button onClick={shareBackup} className="flex flex-col items-center gap-1 p-2 text-xs"><Share2 className="h-5 w-5"/>Sdílet</button><button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-1 p-2 text-xs"><Upload className="h-5 w-5"/>Obnovit</button></nav>
   </div>;

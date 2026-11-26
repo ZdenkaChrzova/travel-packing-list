@@ -1,13 +1,20 @@
 {
-  "version": "1.2.1",
-  "date": "2026-11-08",
-  "title": "Přesunutí karty počasí",
+  "version": "1.2.2",
+  "date": "2026-11-26",
+  "title": "Místní čas destinace",
   "changes": [
-    "Karta počasí byla přesunuta přímo pod údaje o cestě.",
-    "Na mobilu se zobrazuje pořadí: údaje cesty, počasí a průběh balení.",
-    "Na větších obrazovkách zůstává průběh balení v pravém sloupci."
+    "K vybrané destinaci byl přidán aktuální místní čas.",
+    "Čas se určuje podle časového pásma přesné lokality a automaticky se aktualizuje."
   ],
   "history": [
+    {
+      "version": "1.2.2",
+      "date": "2026-11-26",
+      "changes": [
+        "K vybrané destinaci byl přidán aktuální místní čas.",
+        "Čas se určuje podle časového pásma přesné lokality a automaticky se aktualizuje."
+      ]
+    },
     {
       "version": "1.2.1",
       "date": "2026-11-08",

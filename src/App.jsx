@@ -55,7 +55,7 @@ function ShipIcon({ className = "h-5 w-5" }) {
 
 
 const STORAGE_KEY = "packing-trips-stable-v2-icons";
-const APP_VERSION = "1.2.1";
+const APP_VERSION = "1.2.2";
 const UPDATE_SEEN_KEY = "travel-packing-list-update-seen";
 const BASE_URL = import.meta.env.BASE_URL;
 const compareVersions = (a, b) => { const aa=String(a||"0").split(/[.-]/).map(Number), bb=String(b||"0").split(/[.-]/).map(Number); for(let i=0;i<Math.max(aa.length,bb.length);i+=1){const d=(aa[i]||0)-(bb[i]||0);if(d)return d>0?1:-1;}return 0; };

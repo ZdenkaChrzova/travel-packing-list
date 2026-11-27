@@ -1,13 +1,22 @@
 {
-  "version": "1.2.3",
+  "version": "1.3.0",
   "date": "2026-11-26",
-  "title": "Porovnání času destinace s Prahou",
+  "title": "Dynamická domovská lokalita",
   "changes": [
-    "U vybrané destinace se nyní zobrazuje také aktuální čas v Praze.",
-    "Aplikace automaticky vypočítá, o kolik hodin a minut je v destinaci více nebo méně než v Praze.",
-    "Časový rozdíl automaticky respektuje letní čas i časová pásma s minutovým posunem."
+    "Přidáno globální nastavení domovské lokality pro celou aplikaci.",
+    "Domovskou lokalitu lze vyhledat stejně jako destinaci a nastavení se ukládá samostatně mimo jednotlivé cesty.",
+    "Porovnání času ve všech cestách nyní používá zvolenou domovskou lokalitu; výchozí hodnotou zůstává Praha."
   ],
   "history": [
+    {
+      "version": "1.3.0",
+      "date": "2026-11-26",
+      "changes": [
+        "Přidáno globální nastavení domovské lokality pro celou aplikaci.",
+        "Domovskou lokalitu lze vyhledat stejně jako destinaci a nastavení se ukládá samostatně mimo jednotlivé cesty.",
+        "Porovnání času ve všech cestách nyní používá zvolenou domovskou lokalitu; výchozí hodnotou zůstává Praha."
+      ]
+    },
     {
       "version": "1.2.3",
       "date": "2026-11-26",

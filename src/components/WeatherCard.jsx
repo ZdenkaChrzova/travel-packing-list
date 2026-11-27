@@ -23,7 +23,6 @@ import {
   windDirection,
 } from "@/lib/weather";
 
-const HOME_TIME_ZONE = "Europe/Prague";
 
 const day = value =>
   new Intl.DateTimeFormat("cs-CZ", {
@@ -73,9 +72,9 @@ const timeZoneOffsetMinutes = (value, timeZone) => {
   return Math.round((localTimeAsUtc - value.getTime()) / 60000);
 };
 
-const differenceText = (minutes, destinationName) => {
+const differenceText = (minutes, destinationName, homeName) => {
   if (minutes === 0) {
-    return `${destinationName}: stejný čas jako v Praze`;
+    return `${destinationName}: stejný čas jako ${homeName}`;
   }
 
   const absoluteMinutes = Math.abs(minutes);
@@ -107,10 +106,10 @@ const differenceText = (minutes, destinationName) => {
 
   const direction = minutes > 0 ? "více" : "méně";
 
-  return `${destinationName}: o ${parts.join(" ")} ${direction} než v Praze`;
+  return `${destinationName}: o ${parts.join(" ")} ${direction} než ${homeName}`;
 };
 
-export function WeatherCard({ trip, onUpdate }) {
+export function WeatherCard({ trip, onUpdate, homeLocation }) {
   const location = trip.destinationLocation;
   const cached = trip.weatherCache;
 

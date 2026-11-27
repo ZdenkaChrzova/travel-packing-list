@@ -1081,6 +1081,66 @@ export default function PackingListApp() {
     {showSettings && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="presentation" onClick={event => { if(event.target===event.currentTarget) setShowSettings(false); }}><section role="dialog" aria-modal="true" aria-labelledby="settings-title" className="w-full max-w-lg rounded-3xl bg-white p-5 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="settings-title" className="text-xl font-bold">Nastavení aplikace</h2><p className="mt-1 text-sm text-slate-500">Domovská lokalita se používá pro porovnání času ve všech cestách.</p></div><button type="button" onClick={() => setShowSettings(false)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Zavřít"><X className="h-5 w-5"/></button></div><div className="mt-5"><label className="mb-2 block text-xs font-semibold uppercase text-slate-400">Domovská lokalita</label><HomeLocationPicker value={homeLocation} onChange={setHomeLocation}/><p className="mt-3 text-xs text-slate-500">Výchozí lokalitou je Praha. Změna se uloží pouze v tomto zařízení a projeví se u všech cest.</p></div><div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between"><Button type="button" variant="outline" onClick={() => setHomeLocation(DEFAULT_HOME_LOCATION)}>Obnovit Prahu</Button><Button type="button" onClick={() => setShowSettings(false)} className="bg-sky-600 hover:bg-sky-700">Hotovo</Button></div></section></div>}
       {updateDialog && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="presentation" onClick={event => { if(event.target===event.currentTarget) closeUpdateDialog(false); }}><section role="dialog" aria-modal="true" aria-labelledby="update-title" className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="update-title" className="text-xl font-bold text-slate-900">{updateDialog.available ? `Nová verze ${updateDialog.info.version}` : `Co je nového ve verzi ${updateDialog.info.version}`}</h2><p className="mt-1 text-sm text-slate-500">{updateDialog.info.date ? `Vydáno ${releaseDate(updateDialog.info.date)}` : ""}{updateDialog.available ? ` · Nainstalována verze ${APP_VERSION}` : ""}</p></div><button type="button" onClick={() => closeUpdateDialog(true)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Zavřít"><X className="h-5 w-5"/></button></div><ul className="mt-5 list-disc space-y-2 pl-5 text-sm text-slate-700">{(updateDialog.info.changes || ["Drobné opravy a vylepšení."]).map(change => <li key={change}>{change}</li>)}</ul>{updateError && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{updateError}</p>}<div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">{updateDialog.available && <Button type="button" variant="outline" onClick={() => closeUpdateDialog(true)}>Připomenout později</Button>}<Button type="button" onClick={installUpdate} disabled={updating} className="bg-sky-600 hover:bg-sky-700">{updating ? <><RefreshCw className="mr-2 h-4 w-4 animate-spin"/>Aktualizuji…</> : updateDialog.available ? "Aktualizovat nyní" : "Rozumím"}</Button></div></section></div>}
     {showReleaseHistory && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="presentation" onClick={event => { if(event.target===event.currentTarget) setShowReleaseHistory(false); }}><section role="dialog" aria-modal="true" aria-labelledby="history-title" className="max-h-[90vh] w-full max-w-xl overflow-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-6"><div className="flex items-start justify-between gap-4"><div><h2 id="history-title" className="text-xl font-bold">Co je nového</h2><p className="text-sm text-slate-500">Nainstalovaná verze {APP_VERSION}</p></div><button type="button" onClick={() => setShowReleaseHistory(false)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Zavřít"><X className="h-5 w-5"/></button></div><div className="mt-5 space-y-3">{(updateInfo?.history || [{version:APP_VERSION,date:"2026-11-06",changes:["První oficiální verze aplikace."]}]).map(release => <article key={release.version} className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><h3 className="font-bold text-sky-800">Verze {release.version}{release.version===APP_VERSION && <span className="ml-2 rounded-full bg-emerald-100 px-2 py-1 text-[10px] text-emerald-800">Nainstalováno</span>}</h3><p className="mt-1 text-xs text-slate-500">{releaseDate(release.date)}</p><ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-700">{(release.changes||[]).map(change => <li key={change}>{change}</li>)}</ul></article>)}</div><div className="mt-6 border-t border-slate-200 pt-4 text-center text-xs text-slate-500"><p>© 2026 Zdeňka Chrzová</p><p className="mt-1">Travel Packing List · verze {APP_VERSION}</p></div></section></div>}
-    <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t bg-white p-2 shadow-2xl md:hidden"><button onClick={() => setView("trips")} className="flex flex-col items-center gap-1 p-2 text-xs"><Home className="h-5 w-5"/>Cesty</button><button onClick={createTrip} className="flex flex-col items-center gap-1 p-2 text-xs"><Plus className="h-5 w-5"/>Nová</button><button onClick={backup} className="flex flex-col items-center gap-1 p-2 text-xs"><Database className="h-5 w-5"/>Záloha</button><button onClick={shareBackup} className="flex flex-col items-center gap-1 p-2 text-xs"><Share2 className="h-5 w-5"/>Sdílet</button><button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-1 p-2 text-xs"><Upload className="h-5 w-5"/>Obnovit</button><button onClick={() => setShowSettings(true)} className="flex flex-col items-center gap-1 p-2 text-xs"><Settings className="h-5 w-5"/>Nastavení</button></nav>
-  </div>;
+<nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t bg-white px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-2xl md:hidden">
+  <button
+    onClick={() => setView("trips")}
+    className="min-w-0 flex flex-col items-center gap-1 px-0.5 py-1 text-[10px] leading-none"
+  >
+    <Home className="h-5 w-5 shrink-0" />
+    <span className="block w-full truncate text-center">
+      Cesty
+    </span>
+  </button>
+
+  <button
+    onClick={createTrip}
+    className="min-w-0 flex flex-col items-center gap-1 px-0.5 py-1 text-[10px] leading-none"
+  >
+    <Plus className="h-5 w-5 shrink-0" />
+    <span className="block w-full truncate text-center">
+      Nová
+    </span>
+  </button>
+
+  <button
+    onClick={backup}
+    className="min-w-0 flex flex-col items-center gap-1 px-0.5 py-1 text-[10px] leading-none"
+  >
+    <Database className="h-5 w-5 shrink-0" />
+    <span className="block w-full truncate text-center">
+      Záloha
+    </span>
+  </button>
+
+  <button
+    onClick={shareBackup}
+    className="min-w-0 flex flex-col items-center gap-1 px-0.5 py-1 text-[10px] leading-none"
+  >
+    <Share2 className="h-5 w-5 shrink-0" />
+    <span className="block w-full truncate text-center">
+      Sdílet
+    </span>
+  </button>
+
+  <button
+    onClick={() => fileInputRef.current?.click()}
+    className="min-w-0 flex flex-col items-center gap-1 px-0.5 py-1 text-[10px] leading-none"
+  >
+    <Upload className="h-5 w-5 shrink-0" />
+    <span className="block w-full truncate text-center">
+      Obnovit
+    </span>
+  </button>
+
+  <button
+    onClick={() => setShowSettings(true)}
+    className="min-w-0 flex flex-col items-center gap-1 px-0.5 py-1 text-[10px] leading-none"
+  >
+    <Settings className="h-5 w-5 shrink-0" />
+    <span className="block w-full truncate text-center">
+      Nastavení
+    </span>
+  </button>
+</nav> 
+ </div>;
 }

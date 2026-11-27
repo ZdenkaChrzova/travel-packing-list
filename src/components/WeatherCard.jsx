@@ -125,24 +125,25 @@ export function WeatherCard({ trip, onUpdate, homeLocation }) {
       : weather?.timezone;
 
   let destinationTime = "";
-  let pragueTime = "";
+  let homeTime = "";
   let timeDifference = "";
 
   if (timeZone) {
     try {
       destinationTime = formatTime(now, timeZone);
-      pragueTime = formatTime(now, HOME_TIME_ZONE);
+      homeTime = formatTime(now, homeLocation.timezone);
 
       const destinationOffset = timeZoneOffsetMinutes(now, timeZone);
-      const pragueOffset = timeZoneOffsetMinutes(now, HOME_TIME_ZONE);
+      const homeOffset = timeZoneOffsetMinutes(now, homeLocation.timezone);
 
       timeDifference = differenceText(
-        destinationOffset - pragueOffset,
-        location.name
+        destinationOffset - homeOffset,
+        location.name,
+        homeLocation.name
       );
     } catch {
       destinationTime = "";
-      pragueTime = "";
+      homeTime = "";
       timeDifference = "";
     }
   }
@@ -300,7 +301,7 @@ export function WeatherCard({ trip, onUpdate, homeLocation }) {
                   <span aria-hidden="true">·</span>
 
                   <span>
-                    Praha {pragueTime}
+                    {homeLocation.name} {homeTime}
                   </span>
                 </span>
 

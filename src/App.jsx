@@ -5,14 +5,14 @@ import {
   CheckCircle2, ChevronDown, ChevronUp, Circle, CloudSun, Copy, Database,
   Download, Dumbbell, FileText, FolderPlus, Gift, HeartPulse, Home, Luggage,
   MapPin, Minus, MoreHorizontal, Plane, Plug, Plus, RotateCcw, Search, Shirt,
-  Share2, Sparkles, Trash2, Upload, Utensils, Train, Footprints, X, RefreshCw, Info
+  Share2, Sparkles, Trash2, Upload, Utensils, Train, Footprints, X, RefreshCw, Info, Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { DestinationPicker } from "@/components/DestinationPicker";
+import { DestinationPicker, HomeLocationPicker } from "@/components/DestinationPicker";
 import { WeatherCard } from "@/components/WeatherCard";
 
 function DiverIcon({ className = "h-5 w-5" }) {
@@ -55,8 +55,10 @@ function ShipIcon({ className = "h-5 w-5" }) {
 
 
 const STORAGE_KEY = "packing-trips-stable-v2-icons";
-const APP_VERSION = "1.2.3";
+const APP_VERSION = "1.3.0";
 const UPDATE_SEEN_KEY = "travel-packing-list-update-seen";
+const HOME_LOCATION_KEY = "travel-packing-list-home-location";
+const DEFAULT_HOME_LOCATION = { id: 3067696, name: "Praha", admin1: "Hlavní město Praha", country: "Česko", countryCode: "CZ", latitude: 50.0755, longitude: 14.4378, timezone: "Europe/Prague" };
 const BASE_URL = import.meta.env.BASE_URL;
 const compareVersions = (a, b) => { const aa=String(a||"0").split(/[.-]/).map(Number), bb=String(b||"0").split(/[.-]/).map(Number); for(let i=0;i<Math.max(aa.length,bb.length);i+=1){const d=(aa[i]||0)-(bb[i]||0);if(d)return d>0?1:-1;}return 0; };
 const releaseDate = value => value ? new Intl.DateTimeFormat("cs-CZ").format(new Date(`${value}T12:00:00`)) : "";
@@ -166,6 +168,8 @@ export default function PackingListApp() {
   const [updateInfo, setUpdateInfo] = useState(null);
   const [updateDialog, setUpdateDialog] = useState(null);
   const [showReleaseHistory, setShowReleaseHistory] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [homeLocation, setHomeLocation] = useState(() => { try { const saved = localStorage.getItem(HOME_LOCATION_KEY); return saved ? JSON.parse(saved) : DEFAULT_HOME_LOCATION; } catch { return DEFAULT_HOME_LOCATION; } });
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState("");
 
@@ -180,6 +184,7 @@ export default function PackingListApp() {
   const [importMessage, setImportMessage] = useState("");
   useEffect(() => { try { const saved = localStorage.getItem(STORAGE_KEY); if (saved) { const parsed = JSON.parse(saved); if (Array.isArray(parsed.trips)) { setTrips(parsed.trips); setActiveId(parsed.activeId || parsed.trips[0]?.id || ""); } } } catch (e) { console.error("Načtení dat selhalo", e); } finally { setLoaded(true); } }, []);
   useEffect(() => { if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify({ trips, activeId })); }, [trips, activeId, loaded]);
+  useEffect(() => { localStorage.setItem(HOME_LOCATION_KEY, JSON.stringify(homeLocation)); }, [homeLocation]);
   useEffect(() => {
     let active = true;
     fetch(`${BASE_URL}version.json?t=${Date.now()}`, { cache: "no-store" })

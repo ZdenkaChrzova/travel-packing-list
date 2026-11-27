@@ -1,0 +1,395 @@
+{
+  "version": "1.20.0",
+  "date": "2026-11-25",
+  "title": "Mobilní použitelnost a přehlednější správa",
+  "changes": [
+    "Odstraněno plovoucí tlačítko návratu nahoru, které na iPhonu překrývalo formuláře, karty a akční tlačítka.",
+    "Formulář ponoru má bezpečný spodní prostor pro pevnou lištu Uložit a Uložit a další.",
+    "Přidání a úprava buddyho se otevírá v překryvném formuláři bez přesunu na konec seznamu.",
+    "Seznam buddies je kompaktnější; interní ID zůstává zachované v datech, ale není zobrazované v běžném přehledu.",
+    "Správa číselníků se při prvním otevření zobrazí na číselníku Země a pamatuje si naposledy otevřený číselník.",
+    "Na iPhonu se číselník vybírá z přehledného rozbalovacího seznamu a aktivní volba vždy odpovídá zobrazenému obsahu.",
+    "QR import, SSI Site ID, vazby lokalit, CSV, JSON a interní hodnoty číselníků zůstávají beze změny."
+  ],
+  "history": [
+    {
+      "version": "1.20.0",
+      "date": "2026-11-25",
+      "changes": [
+        "Odstraněno plovoucí tlačítko návratu nahoru, které na iPhonu překrývalo formuláře, karty a akční tlačítka.",
+        "Formulář ponoru má bezpečný spodní prostor pro pevnou lištu Uložit a Uložit a další.",
+        "Přidání a úprava buddyho se otevírá v překryvném formuláři bez přesunu na konec seznamu.",
+        "Seznam buddies je kompaktnější; interní ID zůstává zachované v datech, ale není zobrazované v běžném přehledu.",
+        "Správa číselníků se při prvním otevření zobrazí na číselníku Země a pamatuje si naposledy otevřený číselník.",
+        "Na iPhonu se číselník vybírá z přehledného rozbalovacího seznamu a aktivní volba vždy odpovídá zobrazenému obsahu.",
+        "QR import, SSI Site ID, vazby lokalit, CSV, JSON a interní hodnoty číselníků zůstávají beze změny."
+      ]
+    },
+    {
+      "version": "1.19.0",
+      "date": "2026-11-25",
+      "changes": [
+        "Na stránce Data se zobrazuje datum a čas poslední vytvořené JSON zálohy.",
+        "Na stránce Data se zobrazuje datum a čas posledního CSV exportu.",
+        "Aplikace upozorní, pokud JSON záloha ještě nebyla vytvořena nebo je starší než 30 dní.",
+        "Časy exportů se ukládají do nastavení aplikace a JSON záloha obsahuje čas svého vytvoření.",
+        "Ze stránky Data byl odstraněn dlouhý seznam Známé lokality; lokality zůstávají beze změny v databázi, mapě, správě a filtrech."
+      ]
+    },
+    {
+      "version": "1.18.3",
+      "date": "2026-11-25",
+      "changes": [
+        "Odstraněno opakované ukládání celé databáze při pouhém čtení názvů z číselníků.",
+        "CSV export již při zpracování ponorů nespouští ukládání do IndexedDB.",
+        "Číselníky se uloží pouze při inicializaci a jen tehdy, když byly skutečně doplněny nebo změněny.",
+        "Zachován opravený export CSV přes systémové sdílení na iPhonu a iPadu.",
+        "Zachován bezpečný import buddyů až po potvrzení importu."
+      ]
+    },
+    {
+      "version": "1.18.2",
+      "date": "2026-11-25",
+      "changes": [
+        "Opraven CSV export na iPhonu a iPadu: soubor se předává přes systémové sdílení místo problematické navigace na Blob URL.",
+        "Na ostatních zařízeních zůstává přímé stažení CSV; dočasná adresa souboru se uvolní až s bezpečným odstupem.",
+        "Noví buddies z CSV se zakládají až po kontrole souboru a potvrzení importu.",
+        "Zrušený import ani chybné řádky už nemění databázi buddies.",
+        "Ověřena shoda pořadí a počtu 18 sloupců v hlavičce a datových řádcích; Buddy je mezi Lokalitou a Max hloubkou."
+      ]
+    },
+    {
+      "version": "1.16.0",
+      "date": "2026-11-26",
+      "changes": [
+        "Vodní plocha byla převedena z pevného seznamu ve skriptu do uživatelsky spravovaného číselníku.",
+        "Zachována jsou původní QR ID 13, 15, 16, 17 a 18 i jejich dosavadní názvy.",
+        "Neznámé ID z QR se automaticky zachová jako historická položka a lze mu později doplnit správný název.",
+        "Novou vodní plochu lze založit zadáním stabilního ID z QR a vlastního názvu; název lze měnit bez přepisování ponorů.",
+        "Formulář, detail ponoru a CSV používají společný číselník Vodní plocha."
+      ]
+    },
+    {
+      "version": "1.15.1",
+      "date": "2026-11-25",
+      "changes": [
+        "Opraveno automatické přibližování aplikace na iPhonu při klepnutí do formulářového pole.",
+        "Text v mobilních polích, výběrech a poznámkách má nyní minimálně 16 px, takže iOS při úpravě automaticky nezvětšuje celou aplikaci.",
+        "Ruční přiblížení gestem zůstává zachované kvůli přístupnosti.",
+        "Zachovány jsou všechny funkce verze 1.15.0 včetně filtru lokalit bez souřadnic."
+      ]
+    },
+    {
+      "version": "1.15.0",
+      "date": "2026-11-25",
+      "changes": [
+        "Do Databáze lokalit byl přidán filtr Bez souřadnic včetně aktuálního počtu chybějících lokalit.",
+        "Filtr lze kombinovat s vyhledáváním a zachovává seskupení lokalit podle zemí.",
+        "Mapa a panel Lokality bez souřadnic používají stejnou kontrolu platných souřadnic.",
+        "Po doplnění a uložení souřadnic se počty i filtrované seznamy automaticky obnoví."
+      ]
+    },
+    {
+      "version": "1.14.1",
+      "date": "2026-11-25",
+      "changes": [
+        "Opraveno tlačítko Přidat ve Správě číselníků; inicializace nyní proběhne až po načtení databáze.",
+        "Nativní nabídka datalist byla nahrazena vlastním rozbalovacím výběrem země, který funguje také v instalované mobilní PWA.",
+        "Stejný výběr země se používá při zakládání a úpravě ponoru i lokality.",
+        "Zachována jsou všechna data, číselník zemí, CSV podpora a funkce verze 1.14.0."
+      ]
+    },
+    {
+      "version": "1.14.0",
+      "date": "2026-11-25",
+      "changes": [
+        "Do Správy číselníků byl přidán centrální číselník Země.",
+        "Země používané ve stávajících lokalitách se automaticky převezmou jako historické položky bez změny uložených dat.",
+        "Zakládání a úprava ponoru i lokality používají stejný seznam zemí a neznámou hodnotu nelze omylem uložit.",
+        "CSV export obsahuje nový sloupec Země; CSV import podle země přesněji vyhledá existující lokalitu a kontroluje hodnotu proti číselníku."
+      ]
+    },
+    {
+      "version": "1.13.0",
+      "date": "2026-11-25",
+      "changes": [
+        "Na úvodní obrazovku byl přidán filtr ponorů s chybějící lokalitou, zemí nebo buddym.",
+        "Filtr umí zobrazit záznamy, kde chybí kterýkoliv vybraný údaj, nebo všechny vybrané údaje současně.",
+        "U jednotlivých položek se zobrazuje počet neúplných ponorů a filtr lze kombinovat s vyhledáváním.",
+        "Tlačítko Uložit a další při aktivním filtru pokračuje na nejbližší vyšší ponor, který filtru stále odpovídá."
+      ]
+    },
+    {
+      "version": "1.12.0",
+      "date": "2026-11-25",
+      "changes": [
+        "Při úpravě existujícího ponoru je k dispozici tlačítko Uložit a další.",
+        "Po jeho použití se automaticky otevře nejbližší uložený ponor s vyšším číslem.",
+        "Při návratu z detailu se seznam vrátí ke konkrétnímu ponoru místo na začátek nebo konec stránky.",
+        "Příslušná skupina roku se při návratu automaticky rozbalí."
+      ]
+    },
+    {
+      "version": "1.11.0",
+      "date": "2026-11-25",
+      "changes": [
+        "Do Nastavení byl přidán přepínač vzhledu se třemi volbami: Auto, Světlý a Tmavý.",
+        "Zvolený vzhled se použije okamžitě a zůstane uložený i po zavření aplikace.",
+        "Volba Auto se řídí systémovým nastavením zařízení a reaguje na jeho změnu.",
+        "Světlý a tmavý režim lze nově vynutit nezávisle na nastavení zařízení."
+      ]
+    },
+    {
+      "version": "1.10.4c",
+      "date": "2026-11-24",
+      "changes": [
+        "Databáze lokalit je nově seskupená podle zemí; u každé země je uveden počet lokalit.",
+        "Skupiny zemí lze rozbalovat a sbalovat a aplikace si jejich stav pamatuje i po opětovném otevření.",
+        "Při vyhledávání se odpovídající skupiny automaticky rozbalí; režim Sloučit lokality zůstává plně funkční.",
+        "Lokality bez vyplněné země se zobrazují ve skupině Země neuvedena."
+      ]
+    },
+    {
+      "version": "1.10.4b",
+      "date": "2026-11-24",
+      "changes": [
+        "Opraveno posouvání dlouhého seznamu existujících lokalit na mobilu. Pohyb prstu po seznamu už okamžitě nevybere dotčenou lokalitu.",
+        "Lokalita se vybere až samostatným klepnutím; seznam podporuje plynulé svislé posouvání v mobilním Safari a instalované PWA.",
+        "Zachována je oprava tlačítka Přidat vybavení a inicializace sekce Servis z verze 1.10.4a."
+      ]
+    },
+    {
+      "version": "1.10.3",
+      "date": "2026-11-23",
+      "changes": [
+        "Tlačítko × ve vyhledávacích polích je posunuté mírně níže, aby bylo opticky vystředěné v mobilním Safari a instalované PWA.",
+        "Na mobilu je svislá pozice nastavena na 54 % výšky pole; velikost a pravé odsazení z verze 1.10.2 zůstávají zachované."
+      ]
+    },
+    {
+      "version": "1.10.2",
+      "date": "2026-11-23",
+      "changes": [
+        "Tlačítko × ve vyhledávacích polích je menší a více odsazené od pravého okraje.",
+        "Na mobilu má tlačítko průměr 32 px, takže zůstává dobře ovladatelné, ale nepřesahuje rámeček pole.",
+        "Upraveno je také vnitřní odsazení pole, aby se text s tlačítkem nepřekrýval."
+      ]
+    },
+    {
+      "version": "1.10.1",
+      "date": "2026-11-23",
+      "changes": [
+        "Všechna vyhledávací pole mají vlastní dobře viditelné tlačítko × pro vymazání textu.",
+        "Mobilní tlačítko má dotykovou plochu 40 × 40 px a není zakryté okrajem ani obsahem pole.",
+        "Vymazání ihned obnoví celý filtrovaný seznam a ponechá kurzor ve vyhledávacím poli.",
+        "Zachováno je úložiště IndexedDB a bezpečný import velkých záloh."
+      ]
+    },
+    {
+      "version": "1.9.0",
+      "date": "2026-11-23",
+      "changes": [
+        "Do Nastavení byla pod Databázi lokalit přidána samostatná Mapa lokalit.",
+        "Do detailu lokality lze vložit souřadnice z SSI ve formátu 50,00080° S, 14,76000° V; aplikace je automaticky převede a zkontroluje.",
+        "Mapa zobrazuje lokality se souřadnicemi, shlukuje blízké značky a nabízí detail, úpravu lokality a otevření navigace.",
+        "Přehled ukazuje počet lokalit na mapě a lokality bez souřadnic umožňuje postupně doplnit.",
+        "Souřadnice jsou součástí JSON zálohy a při editaci lokality se zachovávají."
+      ]
+    },
+    {
+      "version": "1.8.4",
+      "date": "2026-11-12",
+      "changes": [
+        "Správa číselníků je znovu postavená nad původními interními hodnotami verze 1.7.4.",
+        "Ponory, profily a výchozí výstroj se při migraci nepřepisují.",
+        "Každá hodnota nalezená v datech se automaticky doplní do číselníku, takže použité pole nezůstane prázdné.",
+        "Obnoveno přesné členění obleků a původní hodnoty plynů vzduch/nitrox a materiálů Ocel/Hliník.",
+        "Uživatel mění pouze zobrazovaný název, pořadí a viditelnost; interní hodnota zůstává stabilní."
+      ]
+    },
+    {
+      "version": "1.7.4",
+      "date": "2026-11-12",
+      "changes": [
+        "Opraveno zobrazení polí Datum poslední revize a Další revize v mobilní verzi.",
+        "Oba rámečky respektují šířku obrazovky a nepřesahují kartu Servis.",
+        "Hodnota data je v obou polích zarovnaná vlevo."
+      ]
+    },
+    {
+      "version": "1.7.3",
+      "date": "2026-11-12",
+      "changes": [
+        "Na úvodní obrazovku byla přidána karta Upozornění a termíny mezi statistiky a seznam ponorů.",
+        "Karta zobrazuje servisní revize a expirace pojištění do 90 dnů nebo po termínu.",
+        "V základním zobrazení jsou tři nejurgentnější položky; další lze rozbalit tlačítkem Zobrazit vše.",
+        "Kliknutí otevře přímo konkrétní servisní nebo pojistný záznam.",
+        "Pokud žádný termín není blízko, zobrazí se stav Termíny jsou v pořádku."
+      ]
+    },
+    {
+      "version": "1.7.2",
+      "date": "2026-11-12",
+      "changes": [
+        "Nativní mobilní našeptávač lokalit byl nahrazen vlastní rozbalovací nabídkou pod vyhledávacím polem.",
+        "Nabídka má čitelné názvy, zemi, oblast a SSI ID a filtruje se při psaní.",
+        "Na mobilu zůstává nabídka přímo pod rámečkem a lze ji pohodlně posouvat a vybírat dotykem.",
+        "Na počítači zůstává podporováno ovládání klávesami se šipkami, Enter a Escape."
+      ]
+    },
+    {
+      "version": "1.7.1",
+      "date": "2026-11-12",
+      "changes": [
+        "Do části Správa profilu byla přidána položka Servis vybavení.",
+        "Položka otevře stejnou záložku Servis jako horní navigace.",
+        "Servis je nyní dostupný z horní záložky i z přehledu Správa profilu."
+      ]
+    },
+    {
+      "version": "1.7.0",
+      "date": "2026-11-11",
+      "changes": [
+        "Přidána záložka Servis vedle Licencí a Pojištění.",
+        "Evidence lahví, stage a automatik včetně výrobce, modelu, sériového čísla a stavu.",
+        "Automatický výpočet další revize: automatika 1 rok, lahev a stage 5 let; termín lze ručně upravit.",
+        "Přiložení fotografie nebo PDF revizního dokumentu.",
+        "Barevné upozornění na revizi do 90 a 30 dnů nebo po termínu.",
+        "Stažení události revize ve formátu ICS s připomínkou 30 dnů předem.",
+        "Servisní data jsou součástí kompletní JSON zálohy."
+      ]
+    },
+    {
+      "version": "1.6.1",
+      "date": "2026-11-11",
+      "changes": [
+        "Aktuální rok lze nyní sbalit stejně jako všechny ostatní roky.",
+        "Nejnovější rok se automaticky rozbalí pouze při úplně prvním použití seskupeného seznamu.",
+        "Pokud uživatel sbalí všechny roky, aplikace tento stav zachová i po obnovení nebo návratu z detailu."
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-11-11",
+      "changes": [
+        "Ponory na úvodní obrazovce jsou seskupené podle roku.",
+        "Nejnovější rok se při prvním otevření automaticky rozbalí, starší roky zůstávají sbalené.",
+        "U každého roku se zobrazuje počet ponorů, celkový čas pod vodou a maximální hloubka.",
+        "Rozbalené roky se pamatují i po návratu z detailu ponoru.",
+        "Při vyhledávání se roky s nalezenými výsledky automaticky rozbalí."
+      ]
+    },
+    {
+      "version": "1.5.5",
+      "date": "2026-11-11",
+      "changes": [
+        "CSV import nyní správně rozpozná český sloupec Čas a uloží hodnoty jako čas začátku ponoru.",
+        "Při CSV importu se do každého nového ponoru uloží aktuálně zvolený profil výstroje.",
+        "Při editaci dříve importovaného ponoru se prázdné položky výstroje doplní ze zvoleného profilu."
+      ]
+    },
+    {
+      "version": "1.5.4",
+      "date": "2026-11-11",
+      "changes": [
+        "Výběr lokalit pro sloučení je nově řízen přímo podle skutečně zaškrtnutých políček.",
+        "Po druhém zaškrtnutí se atribut disabled z tlačítka Pokračovat fyzicky odstraní.",
+        "Řádek lokality už nepoužívá vnořené přepínání, které mohlo výběr okamžitě vrátit zpět.",
+        "Dialog pro výběr hlavní lokality je vycentrovaný v obrazovce a na menších displejích zůstává celý dostupný posouváním."
+      ]
+    },
+    {
+      "version": "1.5.3",
+      "date": "2026-11-11",
+      "changes": [
+        "Opraveno zapínání tlačítka Pokračovat po označení dvou lokalit.",
+        "Kliknutí na celý řádek lokality nyní spolehlivě přepíná zaškrtávací políčko.",
+        "Vybrané lokality jsou vizuálně zvýrazněné a počítadlo výběru se okamžitě aktualizuje."
+      ]
+    },
+    {
+      "version": "1.5.2",
+      "date": "2026-11-11",
+      "changes": [
+        "Opraveno tlačítko Sloučit lokality, které nereagovalo kvůli chybějící inicializaci stavu.",
+        "Obnovené zobrazení seznamu lokalit pod ovládacími prvky.",
+        "Tlačítko Sloučit lokality je nyní vizuálně aktivní a po stisknutí zobrazí zaškrtávací políčka."
+      ]
+    },
+    {
+      "version": "1.5.1",
+      "date": "2026-11-11",
+      "changes": [
+        "V databázi lokalit lze označit dvě nebo více duplicitních lokalit.",
+        "Před sloučením se vybírá hlavní lokalita a zobrazuje počet dotčených ponorů.",
+        "Ponory se přepojí na hlavní Site ID a ostatní vybrané lokality se odstraní.",
+        "Sloučení vyžaduje závěrečné potvrzení s upozorněním na JSON zálohu."
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-11-11",
+      "changes": [
+        "V kartě ponoru lze vyhledat a vybrat existující lokalitu z číselníku.",
+        "Výběr uloží do ponoru existující Site ID a nevytvoří duplicitní lokalitu.",
+        "Původní název lokality z CSV zůstává uložený a zobrazuje se při kontrole ponoru.",
+        "CSV import už při neznámém názvu automaticky nezakládá novou lokalitu."
+      ]
+    },
+    {
+      "version": "1.4.5",
+      "date": "2026-11-11",
+      "changes": [
+        "Do CSV exportu byl přidán sloupec Čas.",
+        "CSV import načte hodnotu Čas do času začátku ponoru.",
+        "Import času přijímá formát HH:MM, například 11:16."
+      ]
+    },
+    {
+      "version": "1.4.0",
+      "date": "2026-11-11",
+      "changes": [
+        "Přidán CSV export ponorů pro tabulky a Excel.",
+        "Přidán CSV import s kontrolou povinných údajů, chyb a duplicit.",
+        "Import přidává nové ponory a zachovává stávající data.",
+        "Původní obrazovky, JSON zálohy i úložiště aplikace z verze 1.3.2 zůstávají zachovány."
+      ]
+    },
+    {
+      "version": "1.3.2",
+      "date": "2026-11-08",
+      "changes": [
+        "Přidáno plovoucí tlačítko pro rychlý návrat nahoru.",
+        "Seznam ponorů se pro rychlejší načítání zobrazuje postupně po 50 položkách.",
+        "Při vyhledávání se postupné načítání automaticky obnoví od prvních 50 výsledků."
+      ]
+    },
+    {
+      "version": "1.3.1",
+      "date": "2026-11-06",
+      "changes": [
+        "Do sekce O aplikaci byl přidán copyright © 2026 Zdeňka Chrzová.",
+        "Copyright a číslo aplikace jsou nově zobrazené také na konci obrazovky Co je nového."
+      ]
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-11-06",
+      "changes": [
+        "Automatická kontrola nové verze.",
+        "Oznámení s přehledem změn.",
+        "Tlačítko Aktualizovat nyní.",
+        "Historie verzí v Nastavení."
+      ]
+    },
+    {
+      "version": "1.2.3",
+      "date": "2026-11-05",
+      "changes": [
+        "Úpravy mobilního rozložení základních údajů.",
+        "Databáze lokalit a buddies.",
+        "Náhled licencí a pojištění."
+      ]
+    }
+  ]
+}

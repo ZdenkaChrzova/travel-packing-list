@@ -1,12 +1,22 @@
 {
-  "version": "1.2.2",
+  "version": "1.2.3",
   "date": "2026-11-26",
-  "title": "Místní čas destinace",
+  "title": "Porovnání času destinace s Prahou",
   "changes": [
-    "K vybrané destinaci byl přidán aktuální místní čas.",
-    "Čas se určuje podle časového pásma přesné lokality a automaticky se aktualizuje."
+    "U vybrané destinace se nyní zobrazuje také aktuální čas v Praze.",
+    "Aplikace automaticky vypočítá, o kolik hodin a minut je v destinaci více nebo méně než v Praze.",
+    "Časový rozdíl automaticky respektuje letní čas i časová pásma s minutovým posunem."
   ],
   "history": [
+    {
+      "version": "1.2.3",
+      "date": "2026-11-26",
+      "changes": [
+        "U vybrané destinace se nyní zobrazuje také aktuální čas v Praze.",
+        "Aplikace automaticky vypočítá, o kolik hodin a minut je v destinaci více nebo méně než v Praze.",
+        "Časový rozdíl automaticky respektuje letní čas i časová pásma s minutovým posunem."
+      ]
+    },
     {
       "version": "1.2.2",
       "date": "2026-11-26",
